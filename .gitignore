@@ -39,3 +39,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Local development files (should not be committed)
+.cursorrules
+CLAUDE.md
+tasks.md
+implementation.md
