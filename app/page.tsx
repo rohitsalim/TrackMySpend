@@ -17,7 +17,7 @@ export default function Home() {
             <CardHeader>
               <CardTitle className="text-primary">Theme Testing</CardTitle>
               <CardDescription>
-                Testing the tweakcn "tms 2" theme integration
+                Testing the tweakcn &ldquo;tms 2&rdquo; theme integration
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -65,7 +65,7 @@ export default function Home() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-2 text-sm">
-              <div><strong>Theme:</strong> tweakcn "tms 2"</div>
+              <div><strong>Theme:</strong> tweakcn &ldquo;tms 2&rdquo;</div>
               <div><strong>Color Model:</strong> OKLCH</div>
               <div><strong>Font:</strong> Outfit</div>
               <div><strong>Dark Mode:</strong> Supported</div>
