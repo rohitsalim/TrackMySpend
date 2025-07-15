@@ -186,3 +186,105 @@ OPENAI_API_KEY=
 GOOGLE_SEARCH_API_KEY=
 GOOGLE_SEARCH_ENGINE_ID=
 ```
+
+## Commit Message Conventions
+
+Follow [Conventional Commits](https://www.conventionalcommits.org/) specification for consistent commit messages:
+
+### Format
+```
+<type>[optional scope]: <description>
+
+[optional body]
+
+[optional footer(s)]
+```
+
+### Types
+- **feat**: New feature for the user
+- **fix**: Bug fix for the user
+- **docs**: Documentation only changes
+- **style**: Changes that do not affect meaning (white-space, formatting, etc.)
+- **refactor**: Code change that neither fixes a bug nor adds a feature
+- **perf**: Performance improvements
+- **test**: Adding missing tests or correcting existing tests
+- **chore**: Changes to build process, auxiliary tools, or dependencies
+- **ci**: Changes to CI configuration files and scripts
+- **build**: Changes that affect the build system or external dependencies
+
+### Scopes (optional)
+- **auth**: Authentication related changes
+- **dashboard**: Dashboard component changes
+- **transactions**: Transaction-related functionality
+- **upload**: File upload functionality
+- **db**: Database schema or queries
+- **api**: API route changes
+- **ui**: UI component changes
+- **store**: State management changes
+- **utils**: Utility function changes
+- **types**: TypeScript type definitions
+
+### Examples
+```bash
+# Feature commits
+feat(auth): add Google OAuth integration
+feat(transactions): implement transaction deduplication logic
+feat(dashboard): add monthly spending insights chart
+
+# Bug fixes
+fix(upload): handle PDF parsing errors gracefully
+fix(api): prevent duplicate transaction creation
+fix(ui): correct currency formatting for negative amounts
+
+# Documentation
+docs: add API documentation for transaction endpoints
+docs: update README with deployment instructions
+
+# Refactoring
+refactor(store): simplify transaction store actions
+refactor(utils): extract common date formatting functions
+
+# Performance
+perf(dashboard): optimize chart rendering with React.memo
+perf(api): add database indexing for transaction queries
+
+# Tests
+test(utils): add unit tests for fingerprint generation
+test(api): add integration tests for upload endpoints
+
+# Chores
+chore: update dependencies to latest versions
+chore: add ESLint rules for financial data handling
+```
+
+### Breaking Changes
+For breaking changes, add `!` after the type/scope:
+```bash
+feat(api)!: change transaction response format
+refactor(store)!: restructure transaction state interface
+```
+
+### Multi-line Commits
+For more complex changes, use the body and footer:
+```bash
+feat(transactions): implement advanced filtering system
+
+Add support for filtering transactions by:
+- Date range with custom periods
+- Multiple category selection
+- Amount range filtering
+- Vendor name search
+
+Closes #123
+```
+
+### Financial Data Specific Guidelines
+- Always mention when changes affect financial calculations
+- Include security considerations in commit messages when relevant
+- Reference specific bank formats when adding parsing support
+
+```bash
+fix(parser): handle HDFC statement date format variations
+feat(security): add input validation for monetary amounts
+perf(calculations): optimize monthly summary aggregations
+```
