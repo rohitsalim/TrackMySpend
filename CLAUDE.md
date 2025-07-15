@@ -196,6 +196,39 @@ if (error) throw error;
 - Track dependencies between tasks
 - Note any deviations from the original plan
 
+## Theme Integration
+
+The project uses the tweakcn "tms 2" theme with financial app optimizations:
+
+### Theme Features
+- **Color Model**: OKLCH for better color perception
+- **Font**: Outfit as primary typeface
+- **Dark Mode**: Full support with optimized colors
+- **Financial Colors**: Custom colors for credit/debit transactions
+- **Chart Colors**: 5 predefined chart color variants
+
+### Financial-Specific Colors
+- `--credit`: Green for income/credit transactions
+- `--debit`: Red for expenses/debit transactions  
+- `--warning`: Orange for warnings
+- `--success`: Green for success states
+
+### Usage in Components
+```tsx
+// Financial amount styling
+<div className="amount-credit">+₹1,000</div>
+<div className="amount-debit">-₹500</div>
+<div className="amount-warning">₹100</div>
+
+// Chart containers
+<div className="chart-container">Chart content</div>
+```
+
+### Available Components
+- Button with all standard variants
+- Card components with financial styling
+- Full shadcn/ui component library
+
 ## Environment Variables Required
 
 ```env
