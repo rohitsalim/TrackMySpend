@@ -1,0 +1,261 @@
+# Project: TrackMySpend - Financial Statement Analysis Platform
+
+## 1. Core Philosophy & Project Standards
+- **Primary Goal:** Build a secure, high-performance financial management application that helps users understand their spending through automated statement processing and intelligent categorization.
+- **Language:** TypeScript is mandatory for all new code. Enforce strict type safety, especially for financial calculations and data structures.
+- **Framework:** Next.js 14+ (App Router) with server-first approach for data security.
+- **Styling:** Tailwind CSS for utility-first styling with consistent spacing and color schemes.
+- **UI Components:** Shadcn/ui as the primary component library for consistent, accessible UI.
+- **State Management:** Zustand for global state with selective persistence for user preferences.
+- **Database & Auth:** Supabase (PostgreSQL, Auth, Storage) with Row Level Security (RLS).
+- **AI Integration:** Vercel AI SDK for PDF parsing and insights generation.
+- **Code Formatting:** Strict adherence to Prettier and ESLint configurations. All code must pass linters before commit.
+- **Imports:**
+    - Use absolute imports via `tsconfig.json` `paths` (e.g., `@/components/...`, `@/lib/...`).
+    - Order: React, Next.js, external libraries, project absolute imports, then relative imports.
+
+## 2. File & Directory Structure (TrackMySpend Specific)
+- **Root Level:** Standard Next.js directories with feature-based organization.
+- **`app/` (App Router):**
+    - `(auth)/`: Login and signup pages
+    - `(dashboard)/`: Protected routes (dashboard, transactions, profile)
+    - `api/`: API routes for upload, process, insights
+    - `_components/`: Route-specific components prefixed with underscore
+- **`components/`:**
+    - `ui/`: Shadcn/ui components and extensions
+    - `dashboard/`: Dashboard-specific components (charts, insights)
+    - `transactions/`: Transaction list, filters, edit modals
+    - `upload/`: File upload and processing status components
+- **`lib/`:**
+    - `supabase/`: Client, server, and middleware configurations
+    - `ai/`: PDF parser, vendor resolver, insights generator
+    - `utils/`: Deduplication, fingerprinting, formatters, financial calculations
+- **`store/`:** Zustand stores:
+    - `authStore.ts`: User session management
+    - `transactionStore.ts`: Transaction data and filters
+    - `uploadStore.ts`: File upload and processing status
+    - `uiStore.ts`: Loading states, modals, notifications
+- **`types/`:**
+    - `database.ts`: Supabase database types
+    - `transactions.ts`: Transaction-related types
+    - `api.ts`: API request/response types
+- **File Naming:**
+    - Components: `PascalCase.tsx` (e.g., `TransactionList.tsx`)
+    - Hooks: `use-kebab-case.ts` (e.g., `use-transaction-filters.ts`)
+    - Utilities: `kebab-case.ts` (e.g., `calculate-fingerprint.ts`)
+
+## 3. Financial Data Handling & Security
+- **Monetary Values:**
+    - Always use `Decimal` type or strings for monetary amounts to avoid floating-point errors
+    - Format currency with proper localization (INR primary, multi-currency support)
+    - Round to 2 decimal places for display, store full precision
+- **Sensitive Data:**
+    - Never store full account numbers or card numbers
+    - Use last 4 digits only for identification
+    - Implement data masking in UI components
+- **File Handling:**
+    - Validate file types and sizes before upload
+    - Use signed URLs for secure file access
+    - Implement virus scanning for uploaded files (future enhancement)
+- **API Security:**
+    - All API routes must validate user authentication
+    - Implement rate limiting for file uploads and processing
+    - Use Zod for request validation
+
+## 4. Database & Supabase Patterns
+- **Row Level Security (RLS):**
+    - Every table must have RLS policies
+    - Users can only access their own data
+    - Shared data (vendor mappings) requires careful policy design
+- **Transactions:**
+    - Use database transactions for multi-table operations
+    - Implement optimistic locking for concurrent updates
+- **Migrations:**
+    - Use Supabase migrations for schema changes
+    - Never modify production schema directly
+- **Query Patterns:**
+    ```typescript
+    // Always type your queries
+    const { data, error } = await supabase
+      .from('transactions')
+      .select('*, categories(*)')
+      .eq('user_id', userId)
+      .order('transaction_date', { ascending: false });
+    ```
+
+## 5. PDF Processing & LLM Integration
+- **Parsing Pipeline:**
+    1. Upload to Supabase Storage
+    2. Extract text with pdf-parse
+    3. Send to LLM with structured prompt
+    4. Validate parsed data with Zod
+    5. Generate fingerprints for deduplication
+    6. Store raw and processed data
+- **Error Handling:**
+    - Implement retry logic with exponential backoff
+    - Store parsing errors for manual review
+    - Provide fallback regex patterns
+- **LLM Best Practices:**
+    ```typescript
+    // Use structured outputs
+    const { object } = await generateObject({
+      model: openai('gpt-4-turbo'),
+      schema: transactionSchema,
+      prompt: STATEMENT_PARSER_PROMPT,
+      temperature: 0, // For consistency
+    });
+    ```
+
+## 6. Transaction Management
+- **Deduplication:**
+    - Generate fingerprints: `hash(date + normalizedAmount + normalizedVendor)`
+    - Check for duplicates within user's transactions
+    - Handle partial statement uploads
+- **Internal Transfers:**
+    - Detect credit card payments (opposite amounts within 3 days)
+    - Link related transactions
+    - Show as disabled in UI with explanation
+- **Categorization:**
+    - Auto-categorize based on vendor mappings
+    - Allow user overrides
+    - Learn from user corrections
+
+## 7. Performance Optimization (Financial App Specific)
+- **Data Loading:**
+    - Paginate transaction lists (50 per page)
+    - Use virtual scrolling for large datasets
+    - Implement cursor-based pagination for consistency
+- **Charts & Analytics:**
+    - Calculate aggregations on the server
+    - Cache monthly summaries
+    - Use React.memo for chart components
+- **File Processing:**
+    - Stream large PDFs instead of loading entirely
+    - Process files in background jobs
+    - Show real-time progress updates
+
+## 8. Testing Requirements
+- **Unit Tests:**
+    - Financial calculations must have 100% coverage
+    - Deduplication logic with edge cases
+    - Date and currency formatting
+    - Utility functions and hooks
+- **Integration Tests:**
+    - PDF parsing with sample statements
+    - Transaction CRUD operations
+    - Vendor mapping flows
+    - API route handlers with database interactions
+- **Component Tests:**
+    - UI components with React Testing Library
+    - Form validation and user interactions
+    - Chart components with mock data
+
+## 9. UI/UX Standards for Financial Data
+- **Data Display:**
+    - Always show currency symbols
+    - Use consistent date formats (DD/MM/YYYY for India)
+    - Color code debits (red) and credits (green)
+    - Group transactions by date
+- **Forms:**
+    - Validate monetary inputs in real-time
+    - Provide clear error messages for invalid amounts
+    - Auto-format currency inputs
+- **Accessibility:**
+    - Ensure screen readers can announce monetary values correctly
+    - Provide keyboard navigation for transaction tables
+    - Use sufficient color contrast for financial data
+
+## 10. State Management Patterns
+```typescript
+// Transaction store example
+interface TransactionStore {
+  // State
+  transactions: Transaction[];
+  filters: {
+    dateRange: { start: Date; end: Date };
+    categories: string[];
+    searchTerm: string;
+  };
+  
+  // Actions
+  fetchTransactions: () => Promise<void>;
+  updateTransaction: (id: string, updates: Partial<Transaction>) => Promise<void>;
+  bulkCategorize: (ids: string[], categoryId: string) => Promise<void>;
+  
+  // Selectors
+  getFilteredTransactions: () => Transaction[];
+  getMonthlyTotals: () => MonthlyTotal[];
+}
+```
+
+## 11. API Response Standards
+```typescript
+// Success response
+{
+  success: true,
+  data: T,
+  meta?: {
+    page?: number;
+    totalPages?: number;
+    totalCount?: number;
+  }
+}
+
+// Error response
+{
+  success: false,
+  error: {
+    code: string;
+    message: string;
+    details?: any;
+  }
+}
+```
+
+## 12. Things to Absolutely Avoid
+- **Storing sensitive financial data in localStorage or cookies**
+- **Using floating-point arithmetic for monetary calculations**
+- **Exposing internal transaction IDs in URLs**
+- **Making synchronous PDF processing calls**
+- **Trusting client-side validation for financial data**
+- **Using `any` type for financial data structures**
+- **Ignoring timezone issues in transaction dates**
+- **Not handling multi-currency edge cases**
+- **Skipping deduplication checks**
+- **Direct database queries without RLS**
+- **Logging sensitive financial information**
+- **Using weak fingerprint algorithms**
+
+## 13. Development Workflow
+- **Feature Development:**
+    1. Create feature branch from main
+    2. Implement with tests
+    3. Ensure linting passes
+    4. Test with multiple bank statement formats
+    5. Verify RLS policies work correctly
+- **Code Review Checklist:**
+    - [ ] TypeScript types are specific and accurate
+    - [ ] Financial calculations are tested
+    - [ ] Sensitive data is properly handled
+    - [ ] API endpoints are secured
+    - [ ] Error handling is comprehensive
+    - [ ] Performance implications considered
+
+## 14. Monitoring & Logging
+- **What to Log:**
+    - File upload attempts and outcomes
+    - Parsing success/failure rates
+    - API response times
+    - User actions (without sensitive data)
+- **What NOT to Log:**
+    - Transaction amounts or descriptions
+    - Account numbers or personal details
+    - File contents
+    - API keys or tokens
+
+## 15. Future Considerations (Keep in Mind)
+- **Family Accounts:** Schema supports but not implemented
+- **Budgeting:** Database ready for budget tables
+- **Mobile App:** API design should support future mobile client
+- **Real-time Updates:** Consider WebSocket for live processing status
+- **Internationalization:** Design with i18n in mind
