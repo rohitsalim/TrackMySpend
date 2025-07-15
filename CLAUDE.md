@@ -75,7 +75,16 @@ The development server runs on http://localhost:3000 with hot reloading enabled.
 
 ## Project Rules and Standards
 
-The project follows strict coding standards defined in `.cursorrules`. Key highlights:
+**Important**: All coding standards and development rules are comprehensively defined in `.cursorrules`. Always refer to this file for detailed guidelines on:
+
+- Code formatting and TypeScript standards
+- Financial data handling and security practices
+- Database patterns and Supabase integration
+- Testing requirements and coverage targets
+- Performance optimization guidelines
+- UI/UX standards for financial applications
+
+Key highlights from `.cursorrules`:
 
 1. **TypeScript**: Strict mode enforced, no `any` types
 2. **Financial Data**: Use Decimal types or strings for monetary values
