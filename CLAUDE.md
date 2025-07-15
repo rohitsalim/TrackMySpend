@@ -180,6 +180,22 @@ const { data, error } = await supabase
 if (error) throw error;
 ```
 
+## Task Tracking
+
+**Important**: Keep track of implementation progress using `tasks.md`. This file contains a comprehensive checklist of all tasks broken down by implementation phases.
+
+### After Each Commit:
+1. Review completed work against the task checklist
+2. Update `tasks.md` to mark completed tasks
+3. Update current phase and overall progress
+4. Add notes about any blockers or changes
+
+### Task Management Guidelines:
+- Only mark tasks as complete when they pass tests
+- Add new tasks as requirements evolve
+- Track dependencies between tasks
+- Note any deviations from the original plan
+
 ## Environment Variables Required
 
 ```env
