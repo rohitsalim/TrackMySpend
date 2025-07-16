@@ -1,15 +1,36 @@
-import { Bell, Search, User, Calendar, Filter } from "lucide-react"
+"use client"
+
+import React from "react"
+import { Bell, Search, User, Calendar, Filter, LogOut } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { SidebarTrigger } from "@/components/ui/sidebar"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { useAuthStore } from "@/store/authStore"
+import { useRouter } from "next/navigation"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 
 export function Navbar() {
-  // TODO: Replace with actual auth state from Supabase
-  // const isAuthenticated = true // Placeholder for auth state
+  const { user, signOut } = useAuthStore()
+  const router = useRouter()
+  
+  const handleSignOut = async () => {
+    try {
+      await signOut()
+      router.push('/login')
+    } catch (error) {
+      console.error('Failed to sign out:', error)
+    }
+  }
   
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-14 max-w-screen-2xl items-center">
+      <div className="container flex h-14 max-w-screen-2xl items-center px-2">
         <SidebarTrigger />
         
         <div className="flex flex-1 items-center justify-between space-x-2 md:justify-end">
@@ -40,10 +61,31 @@ export function Navbar() {
               <span className="sr-only">Notifications</span>
             </Button>
             
-            <Button variant="ghost" size="icon" title="User menu">
-              <User className="h-4 w-4" />
-              <span className="sr-only">User menu</span>
-            </Button>
+            {user ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" className="relative">
+                    <Avatar className="h-[22px] w-[22px]">
+                      <AvatarImage src={user.user_metadata?.avatar_url} alt={user.email || 'User avatar'} />
+                      <AvatarFallback className="text-xs">
+                        {user.email ? user.email.charAt(0).toUpperCase() : 'U'}
+                      </AvatarFallback>
+                    </Avatar>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-40" align="end">
+                  <DropdownMenuItem onClick={handleSignOut} className="text-red-600">
+                    <LogOut className="mr-2 h-4 w-4" />
+                    <span>Log out</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <Button variant="ghost" size="icon" title="User menu">
+                <User className="h-4 w-4" />
+                <span className="sr-only">User menu</span>
+              </Button>
+            )}
           </div>
         </div>
       </div>
