@@ -1,9 +1,6 @@
 import type { Metadata } from "next";
 import { Outfit } from "next/font/google";
 import "./globals.css";
-import { SidebarProvider } from "@/components/ui/sidebar";
-import { AppSidebar } from "@/components/app-sidebar";
-import { Navbar } from "@/components/navbar";
 
 const outfit = Outfit({
   variable: "--font-outfit",
@@ -25,15 +22,7 @@ export default function RootLayout({
       <body
         className={`${outfit.variable} font-sans antialiased`}
       >
-        <SidebarProvider>
-          <AppSidebar />
-          <main className="flex-1">
-            <Navbar />
-            <div className="container mx-auto p-6">
-              {children}
-            </div>
-          </main>
-        </SidebarProvider>
+        {children}
       </body>
     </html>
   );
