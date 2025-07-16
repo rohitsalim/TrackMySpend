@@ -59,7 +59,7 @@ describe('AuthStore', () => {
 
   beforeEach(() => {
     vi.clearAllMocks()
-    vi.mocked(createClient).mockReturnValue(mockSupabase as any)
+    vi.mocked(createClient).mockReturnValue(mockSupabase as unknown as ReturnType<typeof createClient>)
     
     // Clear zustand store
     useAuthStore.setState({
@@ -323,14 +323,14 @@ describe('AuthStore', () => {
     })
 
     it('should handle auth state changes', async () => {
-      let authStateCallback: any
+      let authStateCallback: ((event: string, session: Session | null) => void) | undefined
 
       mockSupabase.auth.getSession.mockResolvedValue({
         data: { session: null },
         error: null,
       })
 
-      mockSupabase.auth.onAuthStateChange.mockImplementation((callback) => {
+      mockSupabase.auth.onAuthStateChange.mockImplementation((callback: (event: string, session: Session | null) => void) => {
         authStateCallback = callback
         return { data: { subscription: { unsubscribe: vi.fn() } } }
       })
@@ -338,14 +338,14 @@ describe('AuthStore', () => {
       await useAuthStore.getState().initialize()
 
       // Simulate auth state change with new session
-      authStateCallback('SIGNED_IN', mockSession)
+      authStateCallback?.('SIGNED_IN', mockSession)
 
       const state = useAuthStore.getState()
       expect(state.user).toEqual(mockUser)
       expect(state.session).toEqual(mockSession)
 
       // Simulate sign out
-      authStateCallback('SIGNED_OUT', null)
+      authStateCallback?.('SIGNED_OUT', null)
 
       const stateAfterSignOut = useAuthStore.getState()
       expect(stateAfterSignOut.user).toBeNull()

@@ -9,7 +9,7 @@ vi.mock('@supabase/ssr', () => ({
 
 // Mock Next.js
 vi.mock('next/server', async (importOriginal) => {
-  const actual = await importOriginal() as any
+  const actual = await importOriginal<typeof import('next/server')>()
   return {
     ...actual,
     NextResponse: {
@@ -46,8 +46,8 @@ describe('Auth Middleware', () => {
     vi.mocked(createServerClient).mockReturnValue(mockSupabaseClient)
     
     // Mock NextResponse
-    vi.mocked(NextResponse.next).mockReturnValue(mockNextResponseObject as any)
-    vi.mocked(NextResponse.redirect).mockReturnValue(mockNextResponseObject as any)
+    vi.mocked(NextResponse.next).mockReturnValue(mockNextResponseObject as unknown as ReturnType<typeof NextResponse.next>)
+    vi.mocked(NextResponse.redirect).mockReturnValue(mockNextResponseObject as unknown as ReturnType<typeof NextResponse.redirect>)
   })
 
   it('should skip middleware when environment variables are missing', async () => {
@@ -151,7 +151,7 @@ describe('Auth Middleware', () => {
     const { createServerClient } = await import('@supabase/ssr')
     
     // Mock the cookies configuration
-    let cookiesConfig: any
+    let cookiesConfig: Parameters<typeof createServerClient>[2] | undefined
     const mockCreateServerClient = vi.mocked(createServerClient)
     mockCreateServerClient.mockImplementation((url, key, config) => {
       cookiesConfig = config
@@ -160,7 +160,7 @@ describe('Auth Middleware', () => {
 
     await updateSession(request)
 
-    expect(cookiesConfig.cookies.getAll()).toEqual(mockCookies)
+    expect(cookiesConfig?.cookies.getAll()).toEqual(mockCookies)
   })
 
   it('should handle Supabase auth error gracefully', async () => {
@@ -191,7 +191,7 @@ describe('Auth Middleware', () => {
       error: null,
     })
 
-    let cookiesConfig: any
+    let cookiesConfig: Parameters<typeof createServerClient>[2] | undefined
     const { createServerClient } = await import('@supabase/ssr')
     vi.mocked(createServerClient).mockImplementation((url, key, config) => {
       cookiesConfig = config
@@ -201,7 +201,9 @@ describe('Auth Middleware', () => {
     await updateSession(request)
 
     // Test setAll functionality
-    cookiesConfig.cookies.setAll(mockCookiesToSet)
+    if (cookiesConfig?.cookies?.setAll) {
+      cookiesConfig.cookies.setAll(mockCookiesToSet)
+    }
 
     expect(mockNextResponseObject.cookies.set).toHaveBeenCalledWith(
       'sb-access-token',

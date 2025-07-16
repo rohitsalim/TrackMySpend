@@ -210,7 +210,7 @@ describe('AuthProvider', () => {
   it('should handle function children', () => {
     render(
       <AuthProvider>
-        {(() => <div data-testid="function-child">Function Child</div>) as any}
+        {(() => <div data-testid="function-child">Function Child</div>) as unknown as React.ReactNode}
       </AuthProvider>
     )
 

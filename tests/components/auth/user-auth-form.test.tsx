@@ -10,7 +10,7 @@ vi.mock('@/store/authStore', () => ({
 
 // Mock the UI components
 vi.mock('@/components/ui/button', () => ({
-  Button: ({ children, onClick, disabled, type, variant, ...props }: any) => (
+  Button: ({ children, onClick, disabled, type, variant, ...props }: React.ButtonHTMLAttributes<HTMLButtonElement> & { variant?: string }) => (
     <button
       onClick={onClick}
       disabled={disabled}
@@ -24,7 +24,7 @@ vi.mock('@/components/ui/button', () => ({
 }))
 
 vi.mock('@/components/ui/input', () => ({
-  Input: ({ onChange, value, ...props }: any) => (
+  Input: ({ onChange, value, ...props }: React.InputHTMLAttributes<HTMLInputElement>) => (
     <input onChange={onChange} value={value} {...props} />
   ),
 }))
