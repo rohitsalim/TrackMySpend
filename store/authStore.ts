@@ -148,7 +148,7 @@ export const useAuthStore = create<AuthStore>()(
           
           if (error) {
             console.error('Error getting session:', error)
-            return
+            // Continue with initialization even on error
           }
           
           if (session) {

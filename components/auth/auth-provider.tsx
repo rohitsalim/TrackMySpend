@@ -8,7 +8,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (!initialized) {
-      initialize()
+      try {
+        initialize()
+      } catch (error) {
+        console.error('Auth initialization failed:', error)
+      }
     }
   }, [initialize, initialized])
 
