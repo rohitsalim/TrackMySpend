@@ -4,27 +4,56 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
+import { useAuthStore } from "@/store/authStore"
 
 interface UserAuthFormProps extends React.HTMLAttributes<HTMLDivElement> {
   type?: 'login' | 'signup'
 }
 
 export function UserAuthForm({ className, type = 'login', ...props }: UserAuthFormProps) {
-  const [isLoading, setIsLoading] = useState<boolean>(false)
   const [email, setEmail] = useState<string>("")
+  const [password, setPassword] = useState<string>("")
+  const [error, setError] = useState<string>("")
+  
+  const { signInWithGoogle, signInWithEmail, signUpWithEmail, loading } = useAuthStore()
 
   async function onSubmit(event: React.SyntheticEvent) {
     event.preventDefault()
-    setIsLoading(true)
+    setError("")
+    
+    if (!email || !password) {
+      setError("Please fill in all fields")
+      return
+    }
 
-    // TODO: Implement actual authentication logic
-    setTimeout(() => {
-      setIsLoading(false)
-    }, 3000)
+    try {
+      if (type === 'login') {
+        await signInWithEmail(email, password)
+      } else {
+        await signUpWithEmail(email, password)
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "An error occurred")
+    }
+  }
+
+  async function onGoogleSignIn() {
+    setError("")
+    try {
+      await signInWithGoogle()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "An error occurred")
+    }
   }
 
   return (
     <div className={cn("grid gap-6", className)} {...props}>
+      {error && (
+        <div className="rounded-md bg-destructive/15 p-3">
+          <p className="text-sm text-destructive">{error}</p>
+        </div>
+      )}
+      
       <form onSubmit={onSubmit}>
         <div className="grid gap-2">
           <div className="grid gap-1">
@@ -38,13 +67,27 @@ export function UserAuthForm({ className, type = 'login', ...props }: UserAuthFo
               autoCapitalize="none"
               autoComplete="email"
               autoCorrect="off"
-              disabled={isLoading}
+              disabled={loading}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
             />
           </div>
-          <Button disabled={isLoading} type="submit">
-            {isLoading && (
+          <div className="grid gap-1">
+            <label className="sr-only" htmlFor="password">
+              Password
+            </label>
+            <Input
+              id="password"
+              placeholder="Password"
+              type="password"
+              autoComplete={type === 'login' ? 'current-password' : 'new-password'}
+              disabled={loading}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+          </div>
+          <Button disabled={loading} type="submit">
+            {loading && (
               <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
             )}
             {type === 'login' ? 'Sign In with Email' : 'Sign Up with Email'}
@@ -61,8 +104,8 @@ export function UserAuthForm({ className, type = 'login', ...props }: UserAuthFo
           </span>
         </div>
       </div>
-      <Button variant="outline" type="button" disabled={isLoading}>
-        {isLoading ? (
+      <Button variant="outline" type="button" disabled={loading} onClick={onGoogleSignIn}>
+        {loading ? (
           <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
         ) : (
           <svg className="mr-2 h-4 w-4" aria-hidden="true" viewBox="0 0 24 24">
