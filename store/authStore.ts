@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { createClient } from '@/lib/supabase/client'
+import { getCallbackURL } from '@/lib/utils/getURL'
 import type { User, Session } from '@supabase/supabase-js'
 
 interface AuthState {
@@ -47,7 +48,7 @@ export const useAuthStore = create<AuthStore>()(
           const { error } = await supabase.auth.signInWithOAuth({
             provider: 'google',
             options: {
-              redirectTo: `${window.location.origin}/auth/callback`,
+              redirectTo: getCallbackURL(),
             },
           })
           
@@ -97,9 +98,7 @@ export const useAuthStore = create<AuthStore>()(
           const { data, error } = await supabase.auth.signUp({
             email,
             password,
-            options: {
-              emailRedirectTo: `${window.location.origin}/auth/callback`,
-            },
+            // Let Supabase handle email confirmation redirects automatically
           })
           
           if (error) {
