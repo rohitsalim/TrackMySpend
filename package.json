@@ -4,12 +4,22 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
+    "dev:local": "npm run supabase:start && npm run dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
     "test": "vitest",
     "test:watch": "vitest --watch",
-    "test:coverage": "vitest --coverage"
+    "test:coverage": "vitest --coverage",
+    "supabase:start": "supabase start",
+    "supabase:stop": "supabase stop",
+    "supabase:reset": "supabase db reset",
+    "supabase:status": "supabase status",
+    "supabase:studio": "supabase studio",
+    "supabase:generate-types": "supabase gen types typescript --local > types/database.ts",
+    "env:local": "node scripts/switch-env.js local",
+    "env:production": "node scripts/switch-env.js production",
+    "env:status": "node scripts/switch-env.js status"
   },
   "dependencies": {
     "@lottiefiles/dotlottie-react": "^0.14.3",
