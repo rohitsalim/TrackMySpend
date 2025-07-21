@@ -129,7 +129,31 @@ export const useAuthStore = create<AuthStore>()(
             throw error
           }
           
+          // Clear all auth state
           set({ user: null, session: null })
+          
+          // Clear any remaining auth cookies
+          if (typeof window !== 'undefined') {
+            // Clear all cookies for localhost domain
+            const cookies = document.cookie.split(';')
+            cookies.forEach(cookie => {
+              const eqPos = cookie.indexOf('=')
+              const name = eqPos > -1 ? cookie.substring(0, eqPos).trim() : cookie.trim()
+              // Clear cookie for localhost
+              document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; domain=localhost`
+              document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/`
+              // Clear cookie for 127.0.0.1 as well
+              document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; domain=127.0.0.1`
+            })
+            
+            // Clear localStorage and sessionStorage if available
+            if (typeof localStorage !== 'undefined' && localStorage.clear) {
+              localStorage.clear()
+            }
+            if (typeof sessionStorage !== 'undefined' && sessionStorage.clear) {
+              sessionStorage.clear()
+            }
+          }
         } catch (error) {
           console.error('Sign out failed:', error)
           throw error
