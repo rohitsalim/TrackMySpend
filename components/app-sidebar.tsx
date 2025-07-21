@@ -1,11 +1,8 @@
 "use client"
 
 import { 
-  BarChart3, 
   CreditCard, 
   Home, 
-  Settings, 
-  Upload, 
   User 
 } from "lucide-react"
 import Link from "next/link"
@@ -38,27 +35,9 @@ const dashboardItems: NavigationItem[] = [
     icon: CreditCard,
     description: "View and manage transactions",
   },
-  {
-    title: "Upload",
-    url: "/upload",
-    icon: Upload,
-    description: "Upload bank statements",
-  },
-  {
-    title: "Analytics",
-    url: "/analytics",
-    icon: BarChart3,
-    description: "Spending insights and trends",
-  },
 ]
 
 const accountItems: NavigationItem[] = [
-  {
-    title: "Settings",
-    url: "/settings",
-    icon: Settings,
-    description: "Account preferences",
-  },
   {
     title: "Profile",
     url: "/profile",
@@ -80,35 +59,9 @@ export function AppSidebar() {
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Financial Dashboard</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {dashboardItems.map((item) => {
-                const isActive = pathname === item.url
-                return (
-                  <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton 
-                      asChild 
-                      isActive={isActive}
-                      className={isActive ? "!bg-primary !text-primary-foreground hover:!bg-primary" : ""}
-                    >
-                      <Link href={item.url} title={item.description}>
-                        <item.icon />
-                        <span>{item.title}</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                )
-              })}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-        
-        <SidebarGroup>
-          <SidebarGroupLabel>Account</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {accountItems.map((item) => {
+              {[...dashboardItems, ...accountItems].map((item) => {
                 const isActive = pathname === item.url
                 return (
                   <SidebarMenuItem key={item.title}>
