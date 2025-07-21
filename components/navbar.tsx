@@ -1,7 +1,7 @@
 "use client"
 
-import React from "react"
-import { Bell, Search, User, Calendar, Filter, LogOut } from "lucide-react"
+import React, { useEffect, useState } from "react"
+import { Bell, Search, User, Calendar, Filter, LogOut, Upload } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { SidebarTrigger } from "@/components/ui/sidebar"
@@ -12,12 +12,22 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { useAuthStore } from "@/store/authStore"
+import { useUploadStore } from "@/store/uploadStore"
 import { useRouter } from "next/navigation"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { UploadModal } from "@/components/upload/upload-modal"
 
 export function Navbar() {
   const { user, signOut } = useAuthStore()
+  const { hasUploadedFiles, fetchUserFiles } = useUploadStore()
   const router = useRouter()
+  const [uploadModalOpen, setUploadModalOpen] = useState(false)
+  
+  useEffect(() => {
+    if (user) {
+      fetchUserFiles()
+    }
+  }, [user, fetchUserFiles])
   
   const handleSignOut = async () => {
     try {
@@ -46,6 +56,18 @@ export function Navbar() {
           </div>
           
           <div className="flex items-center space-x-2">
+            {hasUploadedFiles && (
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                title="Upload statements"
+                onClick={() => setUploadModalOpen(true)}
+              >
+                <Upload className="h-4 w-4" />
+                <span className="sr-only">Upload statements</span>
+              </Button>
+            )}
+            
             <Button variant="ghost" size="icon" title="Filter transactions">
               <Filter className="h-4 w-4" />
               <span className="sr-only">Filter transactions</span>
@@ -89,6 +111,11 @@ export function Navbar() {
           </div>
         </div>
       </div>
+      
+      <UploadModal 
+        open={uploadModalOpen} 
+        onOpenChange={setUploadModalOpen}
+      />
     </header>
   )
 }
