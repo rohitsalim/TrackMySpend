@@ -53,16 +53,16 @@ export async function extractTextFromPDF(pdfBuffer: Buffer): Promise<PDFExtracti
 }
 
 export function preprocessPDFText(text: string): string {
-  // Clean up common PDF parsing artifacts
   return text
-    // Remove excessive whitespace
-    .replace(/\s+/g, ' ')
-    // Remove page numbers and headers/footers that might interfere
-    .replace(/^\d+\s*$/gm, '')
-    // Normalize line breaks
-    .replace(/\r\n/g, '\n')
-    .replace(/\r/g, '\n')
-    // Remove multiple consecutive newlines
-    .replace(/\n\s*\n/g, '\n')
+    // Remove common PDF artifacts
+    .replace(/[^\S\r\n]+/g, ' ') // Replace multiple spaces/tabs with single space
+    .replace(/\r\n/g, '\n') // Windows line endings to Unix
+    .replace(/\r/g, '\n') // Mac line endings to Unix
+    .replace(/\n{3,}/g, '\n\n') // Multiple newlines to double newline
+    .replace(/[""]/g, '"') // Normalize quotes
+    .replace(/['']/g, "'") // Normalize apostrophes
+    .replace(/…/g, '...') // Replace ellipsis
+    .replace(/–|—/g, '-') // Normalize dashes
+    .replace(/ +/g, ' ') // Multiple spaces to single space
     .trim()
 }

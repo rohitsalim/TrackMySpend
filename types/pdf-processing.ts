@@ -9,7 +9,7 @@ export const transactionSchema = z.object({
   amount: z.string().refine((val) => !isNaN(Number(val)) && Number(val) > 0, 'Amount must be a positive number'),
   type: z.enum(['DEBIT', 'CREDIT']),
   original_currency: z.string().optional().default(''),
-  original_amount: z.string().optional().nullable()
+  original_amount: z.string().optional().nullable().default(null)
 })
 
 export const statementSchema = z.object({

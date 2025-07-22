@@ -5,6 +5,7 @@ import { parsePDFStatement } from '@/lib/ai/pdf-parser'
 import { generateFingerprintsForTransactions, detectDuplicateTransactions, detectInternalTransfers } from '@/lib/utils/fingerprint'
 import { addAmounts } from '@/lib/utils/financial'
 import { processRequestSchema } from '@/types/api'
+import { TransactionProcessor } from '@/lib/services/transaction-processor'
 
 export async function POST(request: NextRequest) {
   try {
@@ -163,18 +164,12 @@ export async function POST(request: NextRequest) {
         .filter(tx => tx.type === 'DEBIT')
         .reduce((sum, tx) => addAmounts(sum, tx.amount), '0.00')
       
-      // Update file record with processing results
-      await supabase
-        .from('files')
-        .update({
-          status: 'completed',
-          processed_at: new Date().toISOString(),
-          total_transactions: successfulInserts,
-          total_income: totalIncome,
-          total_expenses: totalExpenses,
-          person_inferred: null // TODO: Implement person inference for family accounts
-        })
-        .eq('id', fileId)
+      // Process raw transactions to create final transaction records
+      const processor = new TransactionProcessor(supabase)
+      const processingResult = await processor.processRawTransactions(fileId, user.id)
+      
+      // Also detect internal transfers across all user transactions
+      await processor.detectAndLinkInternalTransfers(user.id)
       
       return NextResponse.json({
         success: true,
@@ -191,11 +186,13 @@ export async function POST(request: NextRequest) {
           processing_results: {
             total_transactions: statement.transactions.length,
             stored_transactions: successfulInserts,
-            duplicates_found: duplicates.length,
-            internal_transfers: processedTransactions.filter(tx => tx.is_internal_transfer).length,
+            processed_transactions: processingResult.processed,
+            duplicates_found: processingResult.duplicates,
+            internal_transfers: processingResult.internalTransfers,
             parsing_confidence: parsingResult.parsing_confidence || 0,
             total_income: totalIncome,
-            total_expenses: totalExpenses
+            total_expenses: totalExpenses,
+            processing_errors: processingResult.errors
           }
         }
       })

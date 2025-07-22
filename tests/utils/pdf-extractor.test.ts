@@ -106,7 +106,7 @@ describe('PDF Extractor Utils', () => {
       const text = 'Word1     Word2\t\tWord3\n\n\nWord4'
       const cleaned = preprocessPDFText(text)
 
-      expect(cleaned).toBe('Word1 Word2 Word3\nWord4')
+      expect(cleaned).toBe('Word1 Word2 Word3\n\nWord4')
     })
 
     it('should handle empty or whitespace-only text', () => {
