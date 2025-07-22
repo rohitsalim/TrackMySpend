@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
-import { AuthProvider } from '@/components/auth/auth-provider'
+import { AuthProvider } from '@/components/auth/AuthProvider'
 import { useAuthStore } from '@/store/authStore'
 
 // Mock the auth store

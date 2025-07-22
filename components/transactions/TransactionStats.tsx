@@ -8,11 +8,22 @@ import { TrendingUp, TrendingDown, Wallet, Calendar } from 'lucide-react'
 export function TransactionStats() {
   const { transactions } = useTransactionStore()
   
-  // Calculate current month stats
-  const currentMonth = new Date().toISOString().substring(0, 7)
+  // Calculate current month stats - use the most recent month from transactions
+  const allMonths = [...new Set(transactions.map(tx => tx.transaction_date.substring(0, 7)))].sort()
+  const currentMonth = allMonths.length > 0 ? allMonths[allMonths.length - 1] : new Date().toISOString().substring(0, 7)
+  
   const currentMonthTransactions = transactions.filter(
-    tx => tx.transaction_date.substring(0, 7) === currentMonth
+    tx => tx.transaction_date.substring(0, 7) === currentMonth && !tx.is_internal_transfer
   )
+  
+  // Debug logging
+  console.log('TransactionStats Debug:', {
+    totalTransactions: transactions.length,
+    allMonths: allMonths.slice(0, 5),
+    currentMonth,
+    currentMonthTransactions: currentMonthTransactions.length,
+    sampleTransaction: transactions[0]
+  })
   
   const currentMonthIncome = currentMonthTransactions
     .filter(tx => tx.type === 'CREDIT')
@@ -25,10 +36,10 @@ export function TransactionStats() {
   const currentMonthBalance = currentMonthIncome - currentMonthExpenses
   
   // Calculate last month stats for comparison
-  const lastMonth = new Date(new Date().setMonth(new Date().getMonth() - 1))
-    .toISOString().substring(0, 7)
+  const currentMonthIndex = allMonths.indexOf(currentMonth)
+  const lastMonth = currentMonthIndex > 0 ? allMonths[currentMonthIndex - 1] : ''
   const lastMonthTransactions = transactions.filter(
-    tx => tx.transaction_date.substring(0, 7) === lastMonth
+    tx => tx.transaction_date.substring(0, 7) === lastMonth && !tx.is_internal_transfer
   )
   
   const lastMonthExpenses = lastMonthTransactions
@@ -39,13 +50,20 @@ export function TransactionStats() {
     ? ((currentMonthExpenses - lastMonthExpenses) / lastMonthExpenses) * 100
     : 0
   
+  // Format month name for display
+  const monthName = currentMonth ? new Date(currentMonth + '-01').toLocaleDateString('en-US', { 
+    month: 'long', 
+    year: 'numeric' 
+  }) : 'Current Month'
+
   const stats = [
     {
       title: 'Monthly Income',
       value: formatCurrency(currentMonthIncome),
       icon: TrendingUp,
       iconColor: 'text-green-600',
-      bgColor: 'bg-green-50'
+      bgColor: 'bg-green-50',
+      subtitle: monthName
     },
     {
       title: 'Monthly Expenses',
@@ -61,7 +79,8 @@ export function TransactionStats() {
       value: formatCurrency(currentMonthBalance),
       icon: Wallet,
       iconColor: currentMonthBalance >= 0 ? 'text-blue-600' : 'text-orange-600',
-      bgColor: currentMonthBalance >= 0 ? 'bg-blue-50' : 'bg-orange-50'
+      bgColor: currentMonthBalance >= 0 ? 'bg-blue-50' : 'bg-orange-50',
+      subtitle: monthName
     },
     {
       title: 'Total Transactions',
@@ -69,7 +88,7 @@ export function TransactionStats() {
       icon: Calendar,
       iconColor: 'text-purple-600',
       bgColor: 'bg-purple-50',
-      subtitle: 'This month'
+      subtitle: monthName
     }
   ]
   

@@ -9,13 +9,12 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { Checkbox } from '@/components/ui/checkbox'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Pagination } from '@/components/ui/pagination'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { formatCurrency, formatDate } from '@/lib/utils/formatters'
-import { TransactionEditModal } from './transaction-edit-modal'
-import { Pencil, ArrowUpDown } from 'lucide-react'
+import { ArrowUpDown } from 'lucide-react'
 import type { Database } from '@/types/database'
 
 type Transaction = Database['public']['Tables']['transactions']['Row'] & {
@@ -31,6 +30,12 @@ interface TransactionListProps {
   onPageChange: (page: number) => void
 }
 
+// Utility function to truncate text
+const truncateText = (text: string, maxLength: number): string => {
+  if (text.length <= maxLength) return text
+  return text.substring(0, maxLength) + '...'
+}
+
 export function TransactionList({
   transactions,
   isLoading,
@@ -39,28 +44,10 @@ export function TransactionList({
   pageSize,
   onPageChange
 }: TransactionListProps) {
-  const [selectedIds, setSelectedIds] = useState<string[]>([])
-  const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null)
   const [sortField, setSortField] = useState<keyof Transaction>('transaction_date')
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
 
   const totalPages = Math.ceil(totalCount / pageSize)
-
-  const handleSelectAll = (checked: boolean) => {
-    if (checked) {
-      setSelectedIds(transactions.map(t => t.id))
-    } else {
-      setSelectedIds([])
-    }
-  }
-
-  const handleSelectOne = (id: string, checked: boolean) => {
-    if (checked) {
-      setSelectedIds([...selectedIds, id])
-    } else {
-      setSelectedIds(selectedIds.filter(selectedId => selectedId !== id))
-    }
-  }
 
   const handleSort = (field: keyof Transaction) => {
     if (field === sortField) {
@@ -94,18 +81,12 @@ export function TransactionList({
   }
 
   return (
-    <>
+    <TooltipProvider>
       <div className="bg-card rounded-lg overflow-hidden">
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="w-12">
-                <Checkbox
-                  checked={selectedIds.length === transactions.length && transactions.length > 0}
-                  onCheckedChange={handleSelectAll}
-                />
-              </TableHead>
-              <TableHead>
+              <TableHead className="w-[120px]">
                 <Button
                   variant="ghost"
                   size="sm"
@@ -116,7 +97,7 @@ export function TransactionList({
                   <ArrowUpDown className="ml-2 h-4 w-4" />
                 </Button>
               </TableHead>
-              <TableHead>
+              <TableHead className="w-[300px]">
                 <Button
                   variant="ghost"
                   size="sm"
@@ -127,8 +108,8 @@ export function TransactionList({
                   <ArrowUpDown className="ml-2 h-4 w-4" />
                 </Button>
               </TableHead>
-              <TableHead>Category</TableHead>
-              <TableHead className="text-right">
+              <TableHead className="w-[140px]">Category</TableHead>
+              <TableHead className="text-right w-[120px]">
                 <Button
                   variant="ghost"
                   size="sm"
@@ -139,42 +120,47 @@ export function TransactionList({
                   <ArrowUpDown className="ml-2 h-4 w-4" />
                 </Button>
               </TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead className="w-12"></TableHead>
+              <TableHead className="w-[120px]">Bank</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={7} className="text-center py-8">
+                <TableCell colSpan={5} className="text-center py-8">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
                 </TableCell>
               </TableRow>
             ) : (
               sortedTransactions.map((transaction) => (
-                <TableRow
-                  key={transaction.id}
-                  className={transaction.is_internal_transfer ? 'opacity-50' : ''}
-                >
-                  <TableCell>
-                    <Checkbox
-                      checked={selectedIds.includes(transaction.id)}
-                      onCheckedChange={(checked) => handleSelectOne(transaction.id, checked as boolean)}
-                      disabled={transaction.is_internal_transfer}
-                    />
-                  </TableCell>
+                <TableRow key={transaction.id}>
                   <TableCell className="font-medium">
                     {formatDate(transaction.transaction_date)}
                   </TableCell>
-                  <TableCell>
-                    <div>
-                      <p className="font-medium">{transaction.vendor_name}</p>
-                      {transaction.vendor_name !== transaction.vendor_name_original && (
-                        <p className="text-xs text-muted-foreground">
-                          {transaction.vendor_name_original}
-                        </p>
-                      )}
-                    </div>
+                  <TableCell className="max-w-[300px]">
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <div className="cursor-help">
+                          <p className="font-medium">
+                            {truncateText(transaction.vendor_name, 45)}
+                          </p>
+                          {transaction.vendor_name !== transaction.vendor_name_original && (
+                            <p className="text-xs text-muted-foreground">
+                              {truncateText(transaction.vendor_name_original, 45)}
+                            </p>
+                          )}
+                        </div>
+                      </TooltipTrigger>
+                      <TooltipContent side="top" className="max-w-sm">
+                        <div>
+                          <p className="font-medium">{transaction.vendor_name}</p>
+                          {transaction.vendor_name !== transaction.vendor_name_original && (
+                            <p className="text-xs text-muted-foreground mt-1">
+                              Original: {transaction.vendor_name_original}
+                            </p>
+                          )}
+                        </div>
+                      </TooltipContent>
+                    </Tooltip>
                   </TableCell>
                   <TableCell>
                     {transaction.categories ? (
@@ -196,26 +182,9 @@ export function TransactionList({
                     </span>
                   </TableCell>
                   <TableCell>
-                    {transaction.is_internal_transfer && (
-                      <Badge variant="secondary" className="text-xs">
-                        Internal
-                      </Badge>
-                    )}
-                    {transaction.is_duplicate && (
-                      <Badge variant="secondary" className="text-xs">
-                        Duplicate
-                      </Badge>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setEditingTransaction(transaction)}
-                      disabled={transaction.is_internal_transfer}
-                    >
-                      <Pencil className="h-4 w-4" />
-                    </Button>
+                    <span className="text-sm text-muted-foreground">
+                      HDFC Bank
+                    </span>
                   </TableCell>
                 </TableRow>
               ))
@@ -234,14 +203,6 @@ export function TransactionList({
           </div>
         )}
       </div>
-
-      {/* Edit Modal */}
-      {editingTransaction && (
-        <TransactionEditModal
-          transaction={editingTransaction}
-          onClose={() => setEditingTransaction(null)}
-        />
-      )}
-    </>
+    </TooltipProvider>
   )
 }

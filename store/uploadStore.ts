@@ -17,16 +17,24 @@ export interface UploadedFile {
 }
 
 
+interface ProcessingResult {
+  successful: number
+  failed: number
+  errors: Array<{ fileId: string; error: string }>
+}
+
 interface UploadStore {
   files: UploadedFile[]
   uploadState: 'idle' | 'uploading' | 'processing' | 'completed' | 'error'
   uploadProgress: Record<string, number>
+  processingResult: ProcessingResult | null
   error: string | null
   hasUploadedFiles: boolean
   
   fetchUserFiles: () => Promise<void>
   uploadFiles: (files: File[]) => Promise<void>
   deleteFile: (id: string) => Promise<void>
+  retryFile: (id: string) => Promise<void>
   setUploadState: (state: 'idle' | 'uploading' | 'processing' | 'completed' | 'error') => void
   setError: (error: string | null) => void
   updateUploadProgress: (fileId: string, progress: number) => void
@@ -37,6 +45,7 @@ export const useUploadStore = create<UploadStore>((set, get) => ({
   files: [],
   uploadState: 'idle',
   uploadProgress: {},
+  processingResult: null,
   error: null,
   hasUploadedFiles: false,
   
@@ -64,7 +73,7 @@ export const useUploadStore = create<UploadStore>((set, get) => ({
   },
   
   uploadFiles: async (files: File[]) => {
-    set({ uploadState: 'uploading', error: null, uploadProgress: {} })
+    set({ uploadState: 'uploading', error: null, uploadProgress: {}, processingResult: null })
     
     try {
       // Initialize progress for all files
@@ -80,7 +89,10 @@ export const useUploadStore = create<UploadStore>((set, get) => ({
         formData.append('files', file)
       })
       
-      // Upload via API
+      // Update to processing state before calling API
+      set({ uploadState: 'processing' })
+      
+      // Upload via API (now includes processing)
       const response = await fetch('/api/upload', {
         method: 'POST',
         body: formData
@@ -99,7 +111,12 @@ export const useUploadStore = create<UploadStore>((set, get) => ({
         }))
       })
       
-      // Refresh file list
+      // Store processing results
+      set({
+        processingResult: result.data.processing || null
+      })
+      
+      // Refresh file list to show updated statuses
       await get().fetchUserFiles()
       
       set({
@@ -160,6 +177,50 @@ export const useUploadStore = create<UploadStore>((set, get) => ({
     })
   },
   
+  retryFile: async (id: string) => {
+    try {
+      // Update file status to processing optimistically
+      set((state) => ({
+        files: state.files.map(f => 
+          f.id === id ? { ...f, status: 'processing' } : f
+        )
+      }))
+      
+      // Call retry API
+      const response = await fetch('/api/retry', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ fileId: id }),
+      })
+      
+      const result = await response.json()
+      
+      if (!response.ok || !result.success) {
+        throw new Error(result.error?.message || 'Retry failed')
+      }
+      
+      // Refresh file list to get updated status
+      await get().fetchUserFiles()
+      
+    } catch (error) {
+      console.error('Retry error:', error)
+      
+      // Update file status back to failed on error
+      set((state) => ({
+        files: state.files.map(f => 
+          f.id === id ? { ...f, status: 'failed' } : f
+        )
+      }))
+      
+      // Set error state
+      set({ 
+        error: error instanceof Error ? error.message : 'Retry failed' 
+      })
+    }
+  },
+  
   setUploadState: (state) => set({ uploadState: state }),
   setError: (error) => set({ error }),
   updateUploadProgress: (fileId, progress) => {
@@ -170,6 +231,7 @@ export const useUploadStore = create<UploadStore>((set, get) => ({
   resetUploadState: () => set({ 
     uploadState: 'idle', 
     error: null, 
-    uploadProgress: {} 
+    uploadProgress: {},
+    processingResult: null
   })
 }))

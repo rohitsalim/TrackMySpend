@@ -2,7 +2,7 @@ import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import React from 'react'
-import { EmptyState } from '@/components/upload/empty-state'
+import { EmptyState } from '@/components/upload/EmptyState'
 
 // Mock the DotLottieReact component
 vi.mock('@lottiefiles/dotlottie-react', () => ({

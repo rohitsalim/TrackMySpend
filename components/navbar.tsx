@@ -14,7 +14,7 @@ import { useAuthStore } from "@/store/authStore"
 import { useUploadStore } from "@/store/uploadStore"
 import { useRouter } from "next/navigation"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { UploadModal } from "@/components/upload/upload-modal"
+import { UploadModal } from "@/components/upload/UploadModal"
 
 export function Navbar() {
   const { user, signOut } = useAuthStore()

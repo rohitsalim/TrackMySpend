@@ -1,4 +1,4 @@
-import { openai } from '@ai-sdk/openai'
+import { google } from '@ai-sdk/google'
 import { generateObject } from 'ai'
 import { statementSchema, type Statement, type ProcessingResult } from '@/types/pdf-processing'
 
@@ -54,18 +54,18 @@ Here is the PDF content:`
 
 export async function parsePDFStatement(pdfText: string): Promise<ProcessingResult> {
   try {
-    if (!process.env.OPENAI_API_KEY) {
+    if (!process.env.GOOGLE_GENERATIVE_AI_API_KEY) {
       return {
         success: false,
         error: {
           code: 'MISSING_API_KEY',
-          message: 'OpenAI API key is not configured'
+          message: 'Google Gemini API key is not configured'
         }
       }
     }
 
     const { object } = await generateObject({
-      model: openai('gpt-4-turbo'),
+      model: google('gemini-2.5-flash'),
       schema: statementSchema,
       prompt: `${STATEMENT_PARSER_PROMPT}\n\n${pdfText}`,
       temperature: 0, // For consistency in parsing

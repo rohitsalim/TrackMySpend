@@ -6,15 +6,15 @@ vi.mock('ai', () => ({
   generateObject: vi.fn()
 }))
 
-// Mock @ai-sdk/openai
-vi.mock('@ai-sdk/openai', () => ({
-  openai: vi.fn()
+// Mock @ai-sdk/google (not OpenAI)
+vi.mock('@ai-sdk/google', () => ({
+  google: vi.fn()
 }))
 
 describe('PDF Parser', () => {
   beforeEach(() => {
-    // Set mock environment variable
-    process.env.OPENAI_API_KEY = 'test-api-key'
+    // Set mock environment variable for Google Gemini
+    process.env.GOOGLE_GENERATIVE_AI_API_KEY = 'test-api-key'
   })
 
   afterEach(() => {
@@ -84,13 +84,13 @@ describe('PDF Parser', () => {
   })
 
   it('should handle missing API key', async () => {
-    delete process.env.OPENAI_API_KEY
+    delete process.env.GOOGLE_GENERATIVE_AI_API_KEY
 
     const result = await parsePDFStatement('any text')
 
     expect(result.success).toBe(false)
     expect(result.error?.code).toBe('MISSING_API_KEY')
-    expect(result.error?.message).toBe('OpenAI API key is not configured')
+    expect(result.error?.message).toBe('Google Gemini API key is not configured')
   })
 
   it('should calculate parsing confidence correctly', async () => {

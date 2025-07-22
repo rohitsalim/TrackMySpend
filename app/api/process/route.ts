@@ -96,15 +96,28 @@ export async function POST(request: NextRequest) {
       
       // Preprocess extracted text
       const cleanedText = preprocessPDFText(extractionResult.text!)
+      console.log('Cleaned text length:', cleanedText.length)
+      console.log('Cleaned text content (first 500 chars):', cleanedText.substring(0, 500))
       
       // Parse statement with LLM
+      console.log('Starting LLM parsing...')
       const parsingResult = await parsePDFStatement(cleanedText)
+      console.log('LLM parsing result:', parsingResult.success, parsingResult.statement?.transactions?.length || 0, 'transactions')
       
       if (!parsingResult.success || !parsingResult.statement) {
         throw new Error(parsingResult.error?.message || 'Failed to parse statement')
       }
       
       const statement = parsingResult.statement
+      
+      // Debug: Log the first few transactions
+      console.log(`Statement details:`)
+      console.log(`- Type: ${statement.statement_type}`)
+      console.log(`- Bank: ${statement.bank_name}`)
+      console.log(`- Transactions: ${statement.transactions.length}`)
+      if (statement.transactions.length > 0) {
+        console.log(`- First transaction:`, JSON.stringify(statement.transactions[0], null, 2))
+      }
       
       // Generate fingerprints for deduplication
       const transactionsWithFingerprints = generateFingerprintsForTransactions(
@@ -124,28 +137,32 @@ export async function POST(request: NextRequest) {
         description: transaction.description,
         reference_number: transaction.reference_number || null,
         raw_text: transaction.raw_text,
-        amount: Number(transaction.amount).toFixed(2),
+        amount: Number(transaction.amount),
         type: transaction.type,
         original_currency: transaction.original_currency || 'INR',
-        original_amount: transaction.original_amount ? Number(transaction.original_amount).toFixed(2) : null,
+        original_amount: transaction.original_amount ? Number(transaction.original_amount) : null,
         fingerprint: transaction.fingerprint,
-        parsing_confidence: parsingResult.parsing_confidence || 0
+        parsing_confidence: (parsingResult.parsing_confidence || 0) / 100
       }))
       
       // Insert raw transactions (handling potential duplicates)
       const insertResults = await Promise.allSettled(
-        rawTransactionsToInsert.map(async (transaction) => {
+        rawTransactionsToInsert.map(async (transaction, index) => {
           const { error } = await supabase
             .from('raw_transactions')
             .insert(transaction)
           
           if (error && error.code === '23505') {
             // Duplicate fingerprint - this is expected for duplicates
+            console.log(`Transaction ${index} is duplicate:`, error.message)
             return { success: true, duplicate: true }
           } else if (error) {
+            console.error(`Transaction ${index} insertion error:`, error)
+            console.error(`Failed transaction data:`, JSON.stringify(transaction, null, 2))
             throw error
           }
           
+          console.log(`Transaction ${index} inserted successfully`)
           return { success: true, duplicate: false }
         })
       )
@@ -154,6 +171,19 @@ export async function POST(request: NextRequest) {
       const successfulInserts = insertResults.filter(
         result => result.status === 'fulfilled' && result.value.success
       ).length
+      
+      console.log(`Raw transaction insertion: ${successfulInserts}/${rawTransactionsToInsert.length} successful`)
+      
+      // Log any failed insertions
+      const failedInserts = insertResults.filter(
+        result => result.status === 'rejected'
+      )
+      if (failedInserts.length > 0) {
+        console.error(`${failedInserts.length} raw transaction insertions failed:`)
+        failedInserts.forEach((result, index) => {
+          console.error(`Failed insert ${index}:`, result.reason)
+        })
+      }
       
       // Calculate totals using safe financial arithmetic
       const totalIncome = statement.transactions
@@ -167,6 +197,7 @@ export async function POST(request: NextRequest) {
       // Process raw transactions to create final transaction records
       const processor = new TransactionProcessor(supabase)
       const processingResult = await processor.processRawTransactions(fileId, user.id)
+      console.log(`Transaction processor results: ${processingResult.processed} processed, ${processingResult.duplicates} duplicates, ${processingResult.internalTransfers} internal transfers`)
       
       // Also detect internal transfers across all user transactions
       await processor.detectAndLinkInternalTransfers(user.id)
@@ -189,7 +220,7 @@ export async function POST(request: NextRequest) {
             processed_transactions: processingResult.processed,
             duplicates_found: processingResult.duplicates,
             internal_transfers: processingResult.internalTransfers,
-            parsing_confidence: parsingResult.parsing_confidence || 0,
+            parsing_confidence: (parsingResult.parsing_confidence || 0) / 100,
             total_income: totalIncome,
             total_expenses: totalExpenses,
             processing_errors: processingResult.errors

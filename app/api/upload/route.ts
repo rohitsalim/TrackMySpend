@@ -127,12 +127,145 @@ export async function POST(request: NextRequest) {
       )
     }
     
-    // TODO: Trigger processing for uploaded files
+    // Trigger processing for uploaded files
+    const processingResults = await Promise.all(
+      successfulUploads.map(async (uploadResult) => {
+        try {
+          // Update status to processing
+          await supabase
+            .from('files')
+            .update({ status: 'processing' })
+            .eq('id', uploadResult.file.id)
+
+          // Call processing API with forwarded cookies
+          const processResponse = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/api/process`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Cookie': request.headers.get('cookie') || '',
+            },
+            body: JSON.stringify({ fileId: uploadResult.file.id }),
+          })
+
+          const responseText = await processResponse.text()
+          let processResult
+          try {
+            processResult = JSON.parse(responseText)
+          } catch (jsonError) {
+            console.error('Failed to parse process response as JSON:', jsonError)
+            console.error('Response status:', processResponse.status)
+            console.error('Response headers:', Object.fromEntries(processResponse.headers.entries()))
+            console.error('Response was:', responseText)
+            throw new Error(`Processing API returned invalid response: ${responseText.substring(0, 200)}...`)
+          }
+          
+          if (!processResponse.ok || !processResult.success) {
+            console.error('Processing failed:', processResult.error)
+            
+            // Update status to failed
+            await supabase
+              .from('files')
+              .update({ status: 'failed' })
+              .eq('id', uploadResult.file.id)
+            
+            // Clean up the uploaded file from storage since processing failed
+            try {
+              const urlPath = uploadResult.file.file_url.replace(/.*\/storage\/v1\/object\/public\/statements\//, '')
+              const { error: storageError } = await supabase.storage
+                .from('statements')
+                .remove([urlPath])
+              
+              if (storageError) {
+                console.error('Failed to cleanup file from storage:', storageError)
+              }
+            } catch (cleanupError) {
+              console.error('Failed to cleanup file from storage:', cleanupError)
+            }
+            
+            // Remove the file record from database
+            try {
+              const { error: dbError } = await supabase
+                .from('files')
+                .delete()
+                .eq('id', uploadResult.file.id)
+              
+              if (dbError) {
+                console.error('Failed to cleanup file record:', dbError)
+              }
+            } catch (dbError) {
+              console.error('Failed to cleanup file record:', dbError)
+            }
+            
+            return {
+              fileId: uploadResult.file.id,
+              success: false,
+              error: processResult.error?.message || 'Processing failed'
+            }
+          }
+
+          return {
+            fileId: uploadResult.file.id,
+            success: true,
+            processing: processResult.data
+          }
+        } catch (error) {
+          console.error('Processing error:', error)
+          
+          // Update status to failed
+          await supabase
+            .from('files')
+            .update({ status: 'failed' })
+            .eq('id', uploadResult.file.id)
+          
+          // Clean up the uploaded file from storage since processing failed
+          try {
+            const urlPath = uploadResult.file.file_url.replace(/.*\/storage\/v1\/object\/public\/statements\//, '')
+            const { error: storageError } = await supabase.storage
+              .from('statements')
+              .remove([urlPath])
+            
+            if (storageError) {
+              console.error('Failed to cleanup file from storage:', storageError)
+            }
+          } catch (cleanupError) {
+            console.error('Failed to cleanup file from storage:', cleanupError)
+          }
+          
+          // Remove the file record from database
+          try {
+            const { error: dbError } = await supabase
+              .from('files')
+              .delete()
+              .eq('id', uploadResult.file.id)
+            
+            if (dbError) {
+              console.error('Failed to cleanup file record:', dbError)
+            }
+          } catch (dbError) {
+            console.error('Failed to cleanup file record:', dbError)
+          }
+          
+          return {
+            fileId: uploadResult.file.id,
+            success: false,
+            error: error instanceof Error ? error.message : 'Processing failed'
+          }
+        }
+      })
+    )
+
+    const successfulProcessing = processingResults.filter(r => r.success)
+    const failedProcessing = processingResults.filter(r => !r.success)
     
     return NextResponse.json({
       success: true,
       data: {
         uploaded: successfulUploads.map(r => r.file),
+        processing: {
+          successful: successfulProcessing.length,
+          failed: failedProcessing.length,
+          errors: failedProcessing.map(p => ({ fileId: p.fileId, error: p.error }))
+        },
         failed: failedUploads.length,
         total: files.length
       }

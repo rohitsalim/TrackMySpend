@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { FileList } from '@/components/upload/file-list'
+import { FileList } from '@/components/upload/FileList'
 import { useUploadStore } from '@/store/uploadStore'
 import type { UploadedFile } from '@/store/uploadStore'
 
@@ -92,9 +92,9 @@ describe('FileList', () => {
   it('should show correct status for each file', () => {
     render(<FileList />)
     
-    expect(screen.getByText('Processed')).toBeInTheDocument()
-    expect(screen.getByText('Processing...')).toBeInTheDocument()
-    expect(screen.getByText('Failed')).toBeInTheDocument()
+    expect(screen.getByText('Ready to view')).toBeInTheDocument()
+    expect(screen.getByText('Processing transactions...')).toBeInTheDocument()
+    expect(screen.getByText('Processing failed')).toBeInTheDocument()
   })
 
   it('should display transaction count for completed files', () => {
@@ -157,8 +157,8 @@ describe('FileList', () => {
     render(<FileList />)
     
     // Check that status text is displayed
-    expect(screen.getByText('Processed')).toBeInTheDocument()
-    expect(screen.getByText('Processing...')).toBeInTheDocument()
-    expect(screen.getByText('Failed')).toBeInTheDocument()
+    expect(screen.getByText('Ready to view')).toBeInTheDocument()
+    expect(screen.getByText('Processing transactions...')).toBeInTheDocument()
+    expect(screen.getByText('Processing failed')).toBeInTheDocument()
   })
 })

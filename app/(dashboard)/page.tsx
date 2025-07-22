@@ -1,8 +1,8 @@
 "use client"
 
 import { useEffect, useState } from 'react'
-import { EmptyState } from '@/components/upload/empty-state'
-import { UploadModal } from '@/components/upload/upload-modal'
+import { EmptyState } from '@/components/upload/EmptyState'
+import { UploadModal } from '@/components/upload/UploadModal'
 import { useUploadStore } from '@/store/uploadStore'
 
 export default function Home() {

@@ -1,6 +1,6 @@
 "use client"
 
-import { FileList } from '@/components/upload/file-list'
+import { FileList } from '@/components/upload/FileList'
 import { useAuthStore } from '@/store/authStore'
 
 export default function ProfilePage() {

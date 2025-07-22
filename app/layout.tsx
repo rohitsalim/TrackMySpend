@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Outfit } from "next/font/google";
 import "./globals.css";
-import { AuthProvider } from "@/components/auth/auth-provider";
+import { AuthProvider } from "@/components/auth/AuthProvider";
 
 const outfit = Outfit({
   variable: "--font-outfit",

@@ -1,14 +1,15 @@
 "use client"
 
 import React from 'react'
-import { FileText, Trash2, Clock, CheckCircle, XCircle, AlertCircle } from 'lucide-react'
+import Link from 'next/link'
+import { FileText, Trash2, Clock, CheckCircle, XCircle, AlertCircle, Eye, RotateCcw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { useUploadStore, UploadedFile } from '@/store/uploadStore'
 import { formatDistanceToNow } from '@/lib/utils'
 
 export function FileList() {
-  const { files, deleteFile, fetchUserFiles } = useUploadStore()
+  const { files, deleteFile, retryFile, fetchUserFiles } = useUploadStore()
   
   React.useEffect(() => {
     fetchUserFiles()
@@ -32,11 +33,11 @@ export function FileList() {
       case 'pending':
         return 'Waiting to process'
       case 'processing':
-        return 'Processing...'
+        return 'Processing transactions...'
       case 'completed':
-        return 'Processed'
+        return 'Ready to view'
       case 'failed':
-        return 'Failed'
+        return 'Processing failed'
     }
   }
   
@@ -44,6 +45,10 @@ export function FileList() {
     if (confirm(`Are you sure you want to delete ${file.filename}?`)) {
       await deleteFile(file.id)
     }
+  }
+  
+  const handleRetry = async (file: UploadedFile) => {
+    await retryFile(file.id)
   }
   
   if (files.length === 0) {
@@ -91,6 +96,30 @@ export function FileList() {
                   {getStatusIcon(file.status)}
                   <span className="text-sm">{getStatusText(file.status)}</span>
                 </div>
+                
+                {file.status === 'completed' && (
+                  <Button
+                    asChild
+                    variant="outline"
+                    size="sm"
+                  >
+                    <Link href="/transactions">
+                      <Eye className="h-4 w-4 mr-1" />
+                      View
+                    </Link>
+                  </Button>
+                )}
+                
+                {file.status === 'failed' && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleRetry(file)}
+                  >
+                    <RotateCcw className="h-4 w-4 mr-1" />
+                    Retry
+                  </Button>
+                )}
                 
                 <Button
                   variant="ghost"

@@ -1,6 +1,7 @@
 "use client"
 
 import React, { useCallback, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { useDropzone } from 'react-dropzone'
 import { Upload, X, FileText, AlertCircle } from 'lucide-react'
 import {
@@ -24,8 +25,9 @@ interface FileWithPreview extends File {
 }
 
 export function UploadModal({ open, onOpenChange }: UploadModalProps) {
+  const router = useRouter()
   const [files, setFiles] = useState<FileWithPreview[]>([])
-  const { uploadFiles, uploadState, uploadProgress, error, resetUploadState } = useUploadStore()
+  const { uploadFiles, uploadState, uploadProgress, processingResult, error, resetUploadState } = useUploadStore()
   
   const onDrop = useCallback((acceptedFiles: File[]) => {
     // Limit to 20 files
@@ -56,16 +58,23 @@ export function UploadModal({ open, onOpenChange }: UploadModalProps) {
         onOpenChange(false)
         setFiles([])
         resetUploadState()
-      }, 1500)
+      }, 3000) // Extended to 3 seconds to show processing results
     }
   }
   
   const handleClose = () => {
-    if (uploadState !== 'uploading') {
+    if (uploadState !== 'uploading' && uploadState !== 'processing') {
       onOpenChange(false)
       setFiles([])
       resetUploadState()
     }
+  }
+
+  const handleViewTransactions = () => {
+    onOpenChange(false)
+    setFiles([])
+    resetUploadState()
+    router.push('/transactions')
   }
   
   const formatFileSize = (bytes: number) => {
@@ -93,7 +102,7 @@ export function UploadModal({ open, onOpenChange }: UploadModalProps) {
             className={cn(
               "border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors",
               isDragActive ? "border-primary bg-primary/5" : "border-border hover:border-primary/50",
-              uploadState === 'uploading' && "pointer-events-none opacity-50"
+              (uploadState === 'uploading' || uploadState === 'processing') && "pointer-events-none opacity-50"
             )}
           >
             <input {...getInputProps()} />
@@ -130,7 +139,7 @@ export function UploadModal({ open, onOpenChange }: UploadModalProps) {
                       </p>
                     </div>
                   </div>
-                  {uploadState !== 'uploading' && (
+                  {(uploadState !== 'uploading' && uploadState !== 'processing') && (
                     <Button
                       variant="ghost"
                       size="icon"
@@ -140,10 +149,10 @@ export function UploadModal({ open, onOpenChange }: UploadModalProps) {
                       <X className="h-4 w-4" />
                     </Button>
                   )}
-                  {uploadState === 'uploading' && uploadProgress[file.name] !== undefined && (
+                  {(uploadState === 'uploading' || uploadState === 'processing') && uploadProgress[file.name] !== undefined && (
                     <div className="w-16 text-right">
                       <span className="text-xs text-muted-foreground">
-                        {Math.round(uploadProgress[file.name])}%
+                        {uploadState === 'processing' ? 'Processing...' : `${Math.round(uploadProgress[file.name])}%`}
                       </span>
                     </div>
                   )}
@@ -160,10 +169,38 @@ export function UploadModal({ open, onOpenChange }: UploadModalProps) {
             </div>
           )}
           
-          {/* Upload Success */}
-          {uploadState === 'completed' && (
+          {/* Processing Status */}
+          {uploadState === 'processing' && (
+            <div className="flex items-center space-x-2 p-3 rounded-lg bg-blue-500/10 text-blue-600">
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+              <p className="text-sm">Processing files and extracting transactions...</p>
+            </div>
+          )}
+
+          {/* Processing Success */}
+          {uploadState === 'completed' && processingResult && (
+            <div className="space-y-2">
+              <div className="flex items-center space-x-2 p-3 rounded-lg bg-green-500/10 text-green-600">
+                <Upload className="w-4 h-4" />
+                <p className="text-sm">Files processed successfully!</p>
+              </div>
+              {processingResult.successful > 0 && (
+                <div className="text-sm text-muted-foreground px-3">
+                  ✅ {processingResult.successful} file{processingResult.successful !== 1 ? 's' : ''} processed successfully
+                </div>
+              )}
+              {processingResult.failed > 0 && (
+                <div className="text-sm text-destructive px-3">
+                  ❌ {processingResult.failed} file{processingResult.failed !== 1 ? 's' : ''} failed to process
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Upload Success (fallback for when no processing result) */}
+          {uploadState === 'completed' && !processingResult && (
             <div className="flex items-center space-x-2 p-3 rounded-lg bg-green-500/10 text-green-600">
-              <Upload className="w-4 h-4" />
+              <Upload className="w-4 w-4" />
               <p className="text-sm">Files uploaded successfully!</p>
             </div>
           )}
@@ -173,15 +210,32 @@ export function UploadModal({ open, onOpenChange }: UploadModalProps) {
             <Button
               variant="outline"
               onClick={handleClose}
-              disabled={uploadState === 'uploading'}
+              disabled={uploadState === 'uploading' || uploadState === 'processing'}
             >
-              Cancel
+              {uploadState === 'completed' ? 'Close' : 'Cancel'}
             </Button>
+            
+            {uploadState === 'completed' && processingResult && processingResult.successful > 0 && (
+              <Button
+                onClick={handleViewTransactions}
+                className="bg-green-600 hover:bg-green-700"
+              >
+                View Transactions
+              </Button>
+            )}
+            
             <Button
               onClick={handleUpload}
-              disabled={files.length === 0 || uploadState === 'uploading'}
+              disabled={files.length === 0 || uploadState === 'uploading' || uploadState === 'processing' || uploadState === 'completed'}
             >
-              {uploadState === 'uploading' ? 'Uploading...' : `Upload ${files.length} file${files.length !== 1 ? 's' : ''}`}
+              {uploadState === 'uploading' 
+                ? 'Uploading...' 
+                : uploadState === 'processing'
+                ? 'Processing...'
+                : uploadState === 'completed'
+                ? 'Complete'
+                : `Upload ${files.length} file${files.length !== 1 ? 's' : ''}`
+              }
             </Button>
           </div>
         </div>
