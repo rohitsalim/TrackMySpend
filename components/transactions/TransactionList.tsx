@@ -15,9 +15,10 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Pagination } from '@/components/ui/pagination'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { formatCurrency, formatDate } from '@/lib/utils/formatters'
-import { ArrowUpDown, Edit } from 'lucide-react'
+import { ArrowUpDown, Edit, Sparkles } from 'lucide-react'
 import { TransactionEditModal } from './TransactionEditModal'
 import { BulkCategorizeModal } from './BulkCategorizeModal'
+import { BulkVendorResolveModal } from './BulkVendorResolveModal'
 import { getCategoryPath } from '@/types/categories'
 import type { Database } from '@/types/database'
 
@@ -55,6 +56,7 @@ export function TransactionList({
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null)
   const [selectedTransactions, setSelectedTransactions] = useState<Set<string>>(new Set())
   const [showBulkCategorize, setShowBulkCategorize] = useState(false)
+  const [showBulkVendorResolve, setShowBulkVendorResolve] = useState(false)
 
   const totalPages = Math.ceil(totalCount / pageSize)
 
@@ -127,6 +129,15 @@ export function TransactionList({
                 onClick={() => setSelectedTransactions(new Set())}
               >
                 Clear selection
+              </Button>
+              <Button
+                variant="default"
+                size="sm"
+                onClick={() => setShowBulkVendorResolve(true)}
+                className="bg-blue-600 hover:bg-blue-700"
+              >
+                <Sparkles className="h-4 w-4 mr-1" />
+                Resolve Vendors
               </Button>
               <Button
                 variant="secondary"
@@ -316,6 +327,18 @@ export function TransactionList({
           onSuccess={() => {
             setSelectedTransactions(new Set())
             setShowBulkCategorize(false)
+          }}
+        />
+      )}
+      
+      {/* Bulk Vendor Resolve Modal */}
+      {showBulkVendorResolve && (
+        <BulkVendorResolveModal
+          transactions={transactions.filter(tx => selectedTransactions.has(tx.id))}
+          open={showBulkVendorResolve}
+          onClose={() => {
+            setSelectedTransactions(new Set())
+            setShowBulkVendorResolve(false)
           }}
         />
       )}
