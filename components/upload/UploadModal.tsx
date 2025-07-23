@@ -3,7 +3,7 @@
 import React, { useCallback, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useDropzone } from 'react-dropzone'
-import { Upload, X, FileText, AlertCircle } from 'lucide-react'
+import { Upload, X, FileText, AlertCircle, Check, Loader2 } from 'lucide-react'
 import {
   Dialog,
   DialogContent,
@@ -27,7 +27,7 @@ interface FileWithPreview extends File {
 export function UploadModal({ open, onOpenChange }: UploadModalProps) {
   const router = useRouter()
   const [files, setFiles] = useState<FileWithPreview[]>([])
-  const { uploadFiles, uploadState, uploadProgress, processingResult, error, resetUploadState } = useUploadStore()
+  const { uploadFiles, uploadState, uploadProgress, fileProcessingStatus, processingResult, error, resetUploadState } = useUploadStore()
   
   const onDrop = useCallback((acceptedFiles: File[]) => {
     // Limit to 20 files
@@ -84,6 +84,29 @@ export function UploadModal({ open, onOpenChange }: UploadModalProps) {
     const i = Math.floor(Math.log(bytes) / Math.log(k))
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
   }
+
+  const getFileStatusIcon = (fileName: string) => {
+    const status = fileProcessingStatus[fileName]
+    
+    if (uploadState !== 'processing' && uploadState !== 'completed') {
+      return null
+    }
+    
+    switch (status) {
+      case 'completed':
+        return <Check className="h-4 w-4 text-green-600" />
+      case 'processing':
+        return <Loader2 className="h-4 w-4 text-blue-600 animate-spin" />
+      case 'failed':
+        return <X className="h-4 w-4 text-red-600" />
+      case 'pending':
+        return uploadState === 'processing' ? (
+          <div className="h-4 w-4 rounded-full border-2 border-gray-300" />
+        ) : null
+      default:
+        return null
+    }
+  }
   
   return (
     <Dialog open={open} onOpenChange={handleClose}>
@@ -125,39 +148,62 @@ export function UploadModal({ open, onOpenChange }: UploadModalProps) {
           {files.length > 0 && (
             <div className="space-y-2 max-h-[200px] overflow-y-auto">
               <p className="text-sm font-medium">Selected files ({files.length}/20)</p>
-              {files.map((file, index) => (
-                <div
-                  key={index}
-                  className="flex items-center justify-between p-2 rounded-lg bg-muted/50"
-                >
-                  <div className="flex items-center space-x-2 flex-1 min-w-0">
-                    <FileText className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate">{file.name}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {formatFileSize(file.size)}
-                      </p>
+              {files.map((file, index) => {
+                const statusIcon = getFileStatusIcon(file.name)
+                const processingStatus = fileProcessingStatus[file.name]
+                
+                return (
+                  <div
+                    key={index}
+                    className={cn(
+                      "flex items-center justify-between p-2 rounded-lg bg-muted/50",
+                      processingStatus === 'completed' && "bg-green-50 border border-green-200",
+                      processingStatus === 'failed' && "bg-red-50 border border-red-200",
+                      processingStatus === 'processing' && "bg-blue-50 border border-blue-200"
+                    )}
+                  >
+                    <div className="flex items-center space-x-2 flex-1 min-w-0">
+                      <FileText className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium truncate">{file.name}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {formatFileSize(file.size)}
+                        </p>
+                      </div>
+                    </div>
+                    
+                    {/* Status Icon and Progress */}
+                    <div className="flex items-center space-x-2">
+                      {statusIcon && (
+                        <div className="flex-shrink-0">
+                          {statusIcon}
+                        </div>
+                      )}
+                      
+                      {/* Remove button (only when not processing) */}
+                      {(uploadState !== 'uploading' && uploadState !== 'processing') && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8"
+                          onClick={() => removeFile(index)}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      )}
+                      
+                      {/* Progress text */}
+                      {(uploadState === 'uploading' || uploadState === 'processing') && uploadProgress[file.name] !== undefined && !statusIcon && (
+                        <div className="w-16 text-right">
+                          <span className="text-xs text-muted-foreground">
+                            {uploadState === 'processing' ? 'Processing...' : `${Math.round(uploadProgress[file.name])}%`}
+                          </span>
+                        </div>
+                      )}
                     </div>
                   </div>
-                  {(uploadState !== 'uploading' && uploadState !== 'processing') && (
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8"
-                      onClick={() => removeFile(index)}
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                  )}
-                  {(uploadState === 'uploading' || uploadState === 'processing') && uploadProgress[file.name] !== undefined && (
-                    <div className="w-16 text-right">
-                      <span className="text-xs text-muted-foreground">
-                        {uploadState === 'processing' ? 'Processing...' : `${Math.round(uploadProgress[file.name])}%`}
-                      </span>
-                    </div>
-                  )}
-                </div>
-              ))}
+                )
+              })}
             </div>
           )}
           

@@ -27,6 +27,7 @@ interface UploadStore {
   files: UploadedFile[]
   uploadState: 'idle' | 'uploading' | 'processing' | 'completed' | 'error'
   uploadProgress: Record<string, number>
+  fileProcessingStatus: Record<string, 'pending' | 'processing' | 'completed' | 'failed'>
   processingResult: ProcessingResult | null
   error: string | null
   hasUploadedFiles: boolean
@@ -38,6 +39,7 @@ interface UploadStore {
   setUploadState: (state: 'idle' | 'uploading' | 'processing' | 'completed' | 'error') => void
   setError: (error: string | null) => void
   updateUploadProgress: (fileId: string, progress: number) => void
+  updateFileProcessingStatus: (fileName: string, status: 'pending' | 'processing' | 'completed' | 'failed') => void
   resetUploadState: () => void
 }
 
@@ -45,6 +47,7 @@ export const useUploadStore = create<UploadStore>((set, get) => ({
   files: [],
   uploadState: 'idle',
   uploadProgress: {},
+  fileProcessingStatus: {},
   processingResult: null,
   error: null,
   hasUploadedFiles: false,
@@ -73,47 +76,73 @@ export const useUploadStore = create<UploadStore>((set, get) => ({
   },
   
   uploadFiles: async (files: File[]) => {
-    set({ uploadState: 'uploading', error: null, uploadProgress: {}, processingResult: null })
+    set({ uploadState: 'uploading', error: null, uploadProgress: {}, fileProcessingStatus: {}, processingResult: null })
     
     try {
-      // Initialize progress for all files
+      // Initialize progress and processing status for all files
       files.forEach(file => {
         set((state) => ({
-          uploadProgress: { ...state.uploadProgress, [file.name]: 0 }
+          uploadProgress: { ...state.uploadProgress, [file.name]: 0 },
+          fileProcessingStatus: { ...state.fileProcessingStatus, [file.name]: 'pending' }
         }))
       })
       
-      // Create FormData
-      const formData = new FormData()
-      files.forEach(file => {
-        formData.append('files', file)
-      })
-      
-      // Update to processing state before calling API
       set({ uploadState: 'processing' })
       
-      // Upload via API (now includes processing)
-      const response = await fetch('/api/upload', {
-        method: 'POST',
-        body: formData
-      })
+      let successfulCount = 0
+      let failedCount = 0
+      const errors: Array<{ fileId: string; error: string }> = []
       
-      const result = await response.json()
-      
-      if (!response.ok || !result.success) {
-        throw new Error(result.error?.message || 'Upload failed')
+      // Process files one by one to provide individual feedback
+      for (const file of files) {
+        try {
+          // Update status to processing for current file
+          get().updateFileProcessingStatus(file.name, 'processing')
+          
+          // Create FormData for single file
+          const formData = new FormData()
+          formData.append('files', file)
+          
+          // Upload and process single file
+          const response = await fetch('/api/upload', {
+            method: 'POST',
+            body: formData
+          })
+          
+          const result = await response.json()
+          
+          if (response.ok && result.success) {
+            // Mark file as completed
+            get().updateFileProcessingStatus(file.name, 'completed')
+            get().updateUploadProgress(file.name, 100)
+            successfulCount++
+          } else {
+            // Mark file as failed
+            get().updateFileProcessingStatus(file.name, 'failed')
+            failedCount++
+            errors.push({
+              fileId: file.name,
+              error: result.error?.message || 'Processing failed'
+            })
+          }
+        } catch (error) {
+          console.error(`Error processing file ${file.name}:`, error)
+          get().updateFileProcessingStatus(file.name, 'failed')
+          failedCount++
+          errors.push({
+            fileId: file.name,
+            error: error instanceof Error ? error.message : 'Processing failed'
+          })
+        }
       }
       
-      // Update progress to 100% for all files
-      files.forEach(file => {
-        set((state) => ({
-          uploadProgress: { ...state.uploadProgress, [file.name]: 100 }
-        }))
-      })
-      
-      // Store processing results
+      // Store final processing results
       set({
-        processingResult: result.data.processing || null
+        processingResult: {
+          successful: successfulCount,
+          failed: failedCount,
+          errors
+        }
       })
       
       // Refresh file list to show updated statuses
@@ -228,10 +257,16 @@ export const useUploadStore = create<UploadStore>((set, get) => ({
       uploadProgress: { ...state.uploadProgress, [fileId]: progress }
     }))
   },
+  updateFileProcessingStatus: (fileName, status) => {
+    set((state) => ({
+      fileProcessingStatus: { ...state.fileProcessingStatus, [fileName]: status }
+    }))
+  },
   resetUploadState: () => set({ 
     uploadState: 'idle', 
     error: null, 
     uploadProgress: {},
+    fileProcessingStatus: {},
     processingResult: null
   })
 }))
