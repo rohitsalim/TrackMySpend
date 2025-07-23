@@ -45,6 +45,27 @@ vi.mock('@/lib/supabase/client', () => ({
   },
 }))
 
+// Mock DOM methods that might be needed for portal components
+Object.defineProperty(window, 'getComputedStyle', {
+  value: () => ({
+    getPropertyValue: () => '',
+  }),
+})
+
+// Mock IntersectionObserver
+global.IntersectionObserver = vi.fn(() => ({
+  observe: vi.fn(),
+  disconnect: vi.fn(),
+  unobserve: vi.fn(),
+})) as any
+
+// Mock ResizeObserver  
+global.ResizeObserver = vi.fn(() => ({
+  observe: vi.fn(),
+  disconnect: vi.fn(),
+  unobserve: vi.fn(),
+})) as any
+
 // Mock environment variables
 process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://test.supabase.co'
 process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = 'test-anon-key'

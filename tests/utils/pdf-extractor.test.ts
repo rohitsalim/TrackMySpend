@@ -1,33 +1,28 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { extractTextFromPDF, preprocessPDFText } from '@/lib/utils/pdf-extractor'
 
-// Mock the AI SDK
-vi.mock('ai', () => ({
-  generateText: vi.fn()
-}))
-
-// Mock @ai-sdk/google
-vi.mock('@ai-sdk/google', () => ({
-  google: vi.fn()
+// Mock pdf-parse
+vi.mock('pdf-parse', () => ({
+  default: vi.fn()
 }))
 
 describe('PDF Extractor Utils', () => {
-  beforeEach(() => {
-    // Set mock environment variable for Google Gemini
-    process.env.GOOGLE_GENERATIVE_AI_API_KEY = 'test-api-key'
-  })
-
   afterEach(() => {
     vi.clearAllMocks()
   })
 
   describe('extractTextFromPDF', () => {
     it('should extract text successfully', async () => {
-      const { generateText } = await import('ai')
-      const mockGenerateText = generateText as any
+      const pdf = await import('pdf-parse')
+      const mockPdf = pdf.default as any
       
-      mockGenerateText.mockResolvedValue({
-        text: 'Sample PDF text content\nWith multiple lines'
+      mockPdf.mockResolvedValue({
+        text: 'Sample PDF text content\nWith multiple lines',
+        numpages: 2,
+        info: {
+          Title: 'Test PDF',
+          Author: 'Test Author'
+        }
       })
 
       const mockBuffer = Buffer.from('fake pdf data')
@@ -35,17 +30,20 @@ describe('PDF Extractor Utils', () => {
 
       expect(result.success).toBe(true)
       expect(result.text).toBe('Sample PDF text content\nWith multiple lines')
-      expect(result.metadata?.pages).toBe(1)
-      expect(result.metadata?.info?.extractionMethod).toBe('gemini-2.5-flash')
-      expect(mockGenerateText).toHaveBeenCalled()
+      expect(result.metadata?.pages).toBe(2)
+      expect(result.metadata?.info?.extractionMethod).toBe('pdf-parse')
+      expect(result.metadata?.info?.Title).toBe('Test PDF')
+      expect(mockPdf).toHaveBeenCalledWith(mockBuffer)
     })
 
     it('should handle empty PDF', async () => {
-      const { generateText } = await import('ai')
-      const mockGenerateText = generateText as any
+      const pdf = await import('pdf-parse')
+      const mockPdf = pdf.default as any
       
-      mockGenerateText.mockResolvedValue({
-        text: ''
+      mockPdf.mockResolvedValue({
+        text: '',
+        numpages: 1,
+        info: {}
       })
 
       const mockBuffer = Buffer.from('empty pdf')
@@ -53,21 +51,21 @@ describe('PDF Extractor Utils', () => {
 
       expect(result.success).toBe(false)
       expect(result.error?.code).toBe('EMPTY_PDF')
-      expect(result.error?.message).toBe('PDF contains no readable text or Gemini could not extract text')
+      expect(result.error?.message).toBe('PDF contains no readable text or pdf-parse could not extract text')
     })
 
     it('should handle extraction errors', async () => {
-      const { generateText } = await import('ai')
-      const mockGenerateText = generateText as any
+      const pdf = await import('pdf-parse')
+      const mockPdf = pdf.default as any
       
-      mockGenerateText.mockRejectedValue(new Error('API rate limit exceeded'))
+      mockPdf.mockRejectedValue(new Error('Invalid PDF format'))
 
       const mockBuffer = Buffer.from('corrupted pdf')
       const result = await extractTextFromPDF(mockBuffer)
 
       expect(result.success).toBe(false)
       expect(result.error?.code).toBe('EXTRACTION_FAILED')
-      expect(result.error?.message).toBe('API rate limit exceeded')
+      expect(result.error?.message).toBe('Invalid PDF format')
     })
 
     it('should handle invalid buffer', async () => {

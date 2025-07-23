@@ -1,6 +1,5 @@
-// PDF text extraction using Google Gemini 2.5 Flash
-import { google } from '@ai-sdk/google'
-import { generateText } from 'ai'
+// PDF text extraction using pdf-parse library (optimized from Gemini)
+import pdf from 'pdf-parse'
 
 export interface PDFExtractionResult {
   success: boolean
@@ -39,54 +38,32 @@ export async function extractTextFromPDF(pdfBuffer: Buffer): Promise<PDFExtracti
     }
 
     console.log('Processing PDF buffer of size:', pdfBuffer.length, 'bytes')
+    console.log('Using pdf-parse for text extraction...')
     
-    // Convert PDF to base64 for Gemini
-    const base64PDF = pdfBuffer.toString('base64')
-    
-    console.log('Sending PDF to Gemini for text extraction...')
-    
-    // Use Gemini 2.5 Flash for PDF processing
-    const { text: extractedText } = await generateText({
-      model: google('gemini-2.5-flash'),
-      messages: [
-        {
-          role: 'user',
-          content: [
-            {
-              type: 'text',
-              text: 'Please extract all text content from this PDF document. Return only the raw text content without any formatting, explanations, or additional commentary. If this appears to be a bank/credit card statement, preserve the original structure and spacing as much as possible.'
-            },
-            {
-              type: 'file',
-              data: base64PDF,
-              mimeType: 'application/pdf'
-            }
-          ]
-        }
-      ],
-      temperature: 0, // For consistent extraction
-    })
+    // Use pdf-parse for text extraction
+    const data = await pdf(pdfBuffer)
 
-    if (!extractedText || extractedText.trim().length === 0) {
+    if (!data.text || data.text.trim().length === 0) {
       return {
         success: false,
         error: {
           code: 'EMPTY_PDF',
-          message: 'PDF contains no readable text or Gemini could not extract text'
+          message: 'PDF contains no readable text or pdf-parse could not extract text'
         }
       }
     }
 
-    console.log(`Gemini extracted text: ${extractedText.length} characters`)
-    console.log('Extracted text content (first 500 chars):', extractedText.substring(0, 500))
+    console.log(`pdf-parse extracted text: ${data.text.length} characters`)
+    console.log('Extracted text content (first 500 chars):', data.text.substring(0, 500))
 
     return {
       success: true,
-      text: extractedText.trim(),
+      text: data.text.trim(),
       metadata: {
-        pages: 1, // We don't know exact page count, but we have the content
+        pages: data.numpages,
         info: {
-          extractionMethod: 'gemini-2.5-flash'
+          extractionMethod: 'pdf-parse',
+          ...data.info
         }
       }
     }

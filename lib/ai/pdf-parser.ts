@@ -65,7 +65,14 @@ export async function parsePDFStatement(pdfText: string): Promise<ProcessingResu
     }
 
     const { object } = await generateObject({
-      model: google('gemini-2.5-flash'),
+      model: google('gemini-2.5-flash-lite'),
+      providerOptions: {
+        google: {
+          thinkingConfig: {
+            thinkingBudget: 2048
+          }
+        }
+      },
       schema: statementSchema,
       prompt: `${STATEMENT_PARSER_PROMPT}\n\n${pdfText}`,
       temperature: 0, // For consistency in parsing
