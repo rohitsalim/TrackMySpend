@@ -32,6 +32,9 @@ interface TransactionStore {
   fetchCategories: () => Promise<void>
   updateTransaction: (id: string, updates: Partial<Transaction>) => Promise<void>
   bulkCategorize: (ids: string[], categoryId: string) => Promise<void>
+  createCategory: (name: string, color?: string, icon?: string, parentId?: string | null) => Promise<Category>
+  updateCategory: (id: string, updates: Partial<Category>) => Promise<void>
+  deleteCategory: (id: string) => Promise<void>
   setFilters: (filters: Partial<TransactionFilters>) => void
   setPage: (page: number) => void
   resetFilters: () => void
@@ -209,6 +212,122 @@ export const useTransactionStore = create<TransactionStore>((set, get) => ({
       set({ 
         error: error instanceof Error ? error.message : 'Failed to categorize transactions' 
       })
+    }
+  },
+  
+  // Create a new category
+  createCategory: async (name: string, color?: string, icon?: string, parentId?: string | null) => {
+    try {
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      
+      if (!user) {
+        throw new Error('User not authenticated')
+      }
+      
+      const { data, error } = await supabase
+        .from('categories')
+        .insert({
+          name,
+          color,
+          icon,
+          parent_id: parentId || null,
+          is_system: false,
+          user_id: user.id
+        })
+        .select()
+        .single()
+      
+      if (error) throw error
+      
+      // Update local categories
+      set(state => ({
+        categories: [...state.categories, data]
+      }))
+      
+      return data
+    } catch (error) {
+      set({ 
+        error: error instanceof Error ? error.message : 'Failed to create category' 
+      })
+      throw error
+    }
+  },
+  
+  // Update a category
+  updateCategory: async (id: string, updates: Partial<Category>) => {
+    try {
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      
+      if (!user) {
+        throw new Error('User not authenticated')
+      }
+      
+      // Don't allow updating system categories
+      const { error } = await supabase
+        .from('categories')
+        .update(updates)
+        .eq('id', id)
+        .eq('user_id', user.id)
+        .eq('is_system', false)
+      
+      if (error) throw error
+      
+      // Update local state
+      set(state => ({
+        categories: state.categories.map(cat => 
+          cat.id === id ? { ...cat, ...updates } : cat
+        )
+      }))
+    } catch (error) {
+      set({ 
+        error: error instanceof Error ? error.message : 'Failed to update category' 
+      })
+      throw error
+    }
+  },
+  
+  // Delete a category
+  deleteCategory: async (id: string) => {
+    try {
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      
+      if (!user) {
+        throw new Error('User not authenticated')
+      }
+      
+      // Check if category has transactions
+      const { data: transactions } = await supabase
+        .from('transactions')
+        .select('id')
+        .eq('category_id', id)
+        .limit(1)
+      
+      if (transactions && transactions.length > 0) {
+        throw new Error('Cannot delete category with existing transactions')
+      }
+      
+      // Don't allow deleting system categories
+      const { error } = await supabase
+        .from('categories')
+        .delete()
+        .eq('id', id)
+        .eq('user_id', user.id)
+        .eq('is_system', false)
+      
+      if (error) throw error
+      
+      // Update local state
+      set(state => ({
+        categories: state.categories.filter(cat => cat.id !== id)
+      }))
+    } catch (error) {
+      set({ 
+        error: error instanceof Error ? error.message : 'Failed to delete category' 
+      })
+      throw error
     }
   },
   

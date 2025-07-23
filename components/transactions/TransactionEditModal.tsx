@@ -20,8 +20,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { Plus } from 'lucide-react'
 import { useTransactionStore } from '@/store/transaction-store'
 import { formatCurrency, formatDate } from '@/lib/utils/formatters'
+import { CreateCategoryModal } from '@/components/categories/CreateCategoryModal'
+import { flattenCategoryTree, buildCategoryTree } from '@/types/categories'
 import type { Database } from '@/types/database'
 
 type Transaction = Database['public']['Tables']['transactions']['Row'] & {
@@ -34,12 +37,17 @@ interface TransactionEditModalProps {
 }
 
 export function TransactionEditModal({ transaction, onClose }: TransactionEditModalProps) {
-  const { categories, updateTransaction } = useTransactionStore()
+  const { categories, updateTransaction, fetchCategories } = useTransactionStore()
   
   const [vendorName, setVendorName] = useState(transaction.vendor_name)
-  const [categoryId, setCategoryId] = useState(transaction.category_id || '')
+  const [categoryId, setCategoryId] = useState(transaction.category_id || 'none')
   const [notes, setNotes] = useState(transaction.notes || '')
   const [isLoading, setIsLoading] = useState(false)
+  const [showCreateCategory, setShowCreateCategory] = useState(false)
+  
+  // Get hierarchical categories for dropdown
+  const categoryTree = buildCategoryTree(categories)
+  const flatCategories = flattenCategoryTree(categoryTree)
   
   const handleSave = async () => {
     setIsLoading(true)
@@ -47,7 +55,7 @@ export function TransactionEditModal({ transaction, onClose }: TransactionEditMo
     try {
       await updateTransaction(transaction.id, {
         vendor_name: vendorName,
-        category_id: categoryId || null,
+        category_id: categoryId === 'none' ? null : categoryId,
         notes: notes || null,
       })
       onClose()
@@ -59,14 +67,15 @@ export function TransactionEditModal({ transaction, onClose }: TransactionEditMo
   }
   
   return (
-    <Dialog open onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[425px]">
-        <DialogHeader>
-          <DialogTitle>Edit Transaction</DialogTitle>
-          <DialogDescription>
-            Update vendor name, category, or add notes to this transaction.
-          </DialogDescription>
-        </DialogHeader>
+    <>
+      <Dialog open onOpenChange={onClose}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Edit Transaction</DialogTitle>
+            <DialogDescription>
+              Update vendor name, category, or add notes to this transaction.
+            </DialogDescription>
+          </DialogHeader>
         
         <div className="grid gap-4 py-4">
           {/* Transaction Info */}
@@ -107,16 +116,28 @@ export function TransactionEditModal({ transaction, onClose }: TransactionEditMo
           
           {/* Category */}
           <div className="space-y-2">
-            <Label htmlFor="category">Category</Label>
+            <div className="flex items-center justify-between">
+              <Label htmlFor="category">Category</Label>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowCreateCategory(true)}
+                className="h-auto p-1 text-xs"
+              >
+                <Plus className="h-3 w-3 mr-1" />
+                New Category
+              </Button>
+            </div>
             <Select value={categoryId} onValueChange={setCategoryId}>
               <SelectTrigger id="category">
                 <SelectValue placeholder="Select a category" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">None</SelectItem>
-                {categories.map((category) => (
+                <SelectItem value="none">None</SelectItem>
+                {flatCategories.map(({ category, level }) => (
                   <SelectItem key={category.id} value={category.id}>
-                    {category.name}
+                    {'  '.repeat(level)}{category.name}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -146,5 +167,16 @@ export function TransactionEditModal({ transaction, onClose }: TransactionEditMo
         </DialogFooter>
       </DialogContent>
     </Dialog>
+    
+    {/* Create Category Modal */}
+    <CreateCategoryModal
+      open={showCreateCategory}
+      onClose={() => setShowCreateCategory(false)}
+      onSuccess={() => {
+        setShowCreateCategory(false)
+        fetchCategories() // Refresh categories after creation
+      }}
+    />
+    </>
   )
 }

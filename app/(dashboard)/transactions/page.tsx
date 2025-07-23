@@ -11,6 +11,7 @@ import { RefreshCw, Download } from 'lucide-react'
 export default function TransactionsPage() {
   const {
     transactions,
+    categories,
     isLoading,
     error,
     totalCount,
@@ -104,6 +105,7 @@ export default function TransactionsPage() {
       {/* Transaction List */}
       <TransactionList
         transactions={transactions}
+        categories={categories}
         isLoading={isLoading}
         totalCount={totalCount}
         currentPage={currentPage}

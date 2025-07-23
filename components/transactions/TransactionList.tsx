@@ -11,10 +11,14 @@ import {
 } from '@/components/ui/table'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { Checkbox } from '@/components/ui/checkbox'
 import { Pagination } from '@/components/ui/pagination'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { formatCurrency, formatDate } from '@/lib/utils/formatters'
-import { ArrowUpDown } from 'lucide-react'
+import { ArrowUpDown, Edit } from 'lucide-react'
+import { TransactionEditModal } from './TransactionEditModal'
+import { BulkCategorizeModal } from './BulkCategorizeModal'
+import { getCategoryPath } from '@/types/categories'
 import type { Database } from '@/types/database'
 
 type Transaction = Database['public']['Tables']['transactions']['Row'] & {
@@ -23,6 +27,7 @@ type Transaction = Database['public']['Tables']['transactions']['Row'] & {
 
 interface TransactionListProps {
   transactions: Transaction[]
+  categories: Database['public']['Tables']['categories']['Row'][]
   isLoading: boolean
   totalCount: number
   currentPage: number
@@ -38,6 +43,7 @@ const truncateText = (text: string, maxLength: number): string => {
 
 export function TransactionList({
   transactions,
+  categories,
   isLoading,
   totalCount,
   currentPage,
@@ -46,6 +52,9 @@ export function TransactionList({
 }: TransactionListProps) {
   const [sortField, setSortField] = useState<keyof Transaction>('transaction_date')
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
+  const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null)
+  const [selectedTransactions, setSelectedTransactions] = useState<Set<string>>(new Set())
+  const [showBulkCategorize, setShowBulkCategorize] = useState(false)
 
   const totalPages = Math.ceil(totalCount / pageSize)
 
@@ -57,6 +66,28 @@ export function TransactionList({
       setSortOrder('asc')
     }
   }
+
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      const allIds = new Set(transactions.map(t => t.id))
+      setSelectedTransactions(allIds)
+    } else {
+      setSelectedTransactions(new Set())
+    }
+  }
+
+  const handleSelectTransaction = (transactionId: string, checked: boolean) => {
+    const newSelected = new Set(selectedTransactions)
+    if (checked) {
+      newSelected.add(transactionId)
+    } else {
+      newSelected.delete(transactionId)
+    }
+    setSelectedTransactions(newSelected)
+  }
+
+  const isAllSelected = transactions.length > 0 && selectedTransactions.size === transactions.length
+  const hasSelectedTransactions = selectedTransactions.size > 0
 
   const sortedTransactions = [...transactions].sort((a, b) => {
     const aValue = a[sortField]
@@ -83,9 +114,48 @@ export function TransactionList({
   return (
     <TooltipProvider>
       <div className="bg-card rounded-lg overflow-hidden">
+        {/* Bulk Actions Bar */}
+        {hasSelectedTransactions && (
+          <div className="bg-muted/50 border-b px-4 py-3 flex items-center justify-between">
+            <p className="text-sm font-medium">
+              {selectedTransactions.size} transaction{selectedTransactions.size > 1 ? 's' : ''} selected
+            </p>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setSelectedTransactions(new Set())}
+              >
+                Clear selection
+              </Button>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => setShowBulkCategorize(true)}
+              >
+                Bulk categorize
+              </Button>
+              <Button
+                variant="destructive"
+                size="sm"
+                disabled
+              >
+                Delete
+              </Button>
+            </div>
+          </div>
+        )}
+        
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead className="w-[45px]">
+                <Checkbox
+                  checked={isAllSelected}
+                  onCheckedChange={handleSelectAll}
+                  aria-label="Select all transactions"
+                />
+              </TableHead>
               <TableHead className="w-[120px]">
                 <Button
                   variant="ghost"
@@ -121,18 +191,26 @@ export function TransactionList({
                 </Button>
               </TableHead>
               <TableHead className="w-[120px]">Bank</TableHead>
+              <TableHead className="w-[80px]">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={5} className="text-center py-8">
+                <TableCell colSpan={7} className="text-center py-8">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
                 </TableCell>
               </TableRow>
             ) : (
               sortedTransactions.map((transaction) => (
                 <TableRow key={transaction.id}>
+                  <TableCell>
+                    <Checkbox
+                      checked={selectedTransactions.has(transaction.id)}
+                      onCheckedChange={(checked) => handleSelectTransaction(transaction.id, checked as boolean)}
+                      aria-label={`Select transaction from ${transaction.vendor_name}`}
+                    />
+                  </TableCell>
                   <TableCell className="font-medium">
                     {formatDate(transaction.transaction_date)}
                   </TableCell>
@@ -164,9 +242,16 @@ export function TransactionList({
                   </TableCell>
                   <TableCell>
                     {transaction.categories ? (
-                      <Badge variant="secondary" className="font-normal">
-                        {transaction.categories.name}
-                      </Badge>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Badge variant="secondary" className="font-normal cursor-help">
+                            {transaction.categories.name}
+                          </Badge>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          {getCategoryPath(transaction.categories.id, categories)}
+                        </TooltipContent>
+                      </Tooltip>
                     ) : (
                       <Badge variant="outline" className="font-normal">
                         Uncategorized
@@ -186,6 +271,17 @@ export function TransactionList({
                       HDFC Bank
                     </span>
                   </TableCell>
+                  <TableCell>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => setEditingTransaction(transaction)}
+                      className="h-8 w-8"
+                    >
+                      <Edit className="h-4 w-4" />
+                      <span className="sr-only">Edit transaction</span>
+                    </Button>
+                  </TableCell>
                 </TableRow>
               ))
             )}
@@ -203,6 +299,26 @@ export function TransactionList({
           </div>
         )}
       </div>
+      
+      {/* Edit Modal */}
+      {editingTransaction && (
+        <TransactionEditModal
+          transaction={editingTransaction}
+          onClose={() => setEditingTransaction(null)}
+        />
+      )}
+      
+      {/* Bulk Categorize Modal */}
+      {showBulkCategorize && (
+        <BulkCategorizeModal
+          transactionIds={Array.from(selectedTransactions)}
+          onClose={() => setShowBulkCategorize(false)}
+          onSuccess={() => {
+            setSelectedTransactions(new Set())
+            setShowBulkCategorize(false)
+          }}
+        />
+      )}
     </TooltipProvider>
   )
 }

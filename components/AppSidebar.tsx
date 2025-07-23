@@ -3,6 +3,7 @@
 import { 
   CreditCard, 
   Home, 
+  Tag,
   User 
 } from "lucide-react"
 import Link from "next/link"
@@ -33,6 +34,12 @@ const dashboardItems: NavigationItem[] = [
     url: "/transactions",
     icon: CreditCard,
     description: "View and manage transactions",
+  },
+  {
+    title: "Categories",
+    url: "/categories",
+    icon: Tag,
+    description: "Manage expense categories",
   },
 ]
 
