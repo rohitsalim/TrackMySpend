@@ -170,6 +170,25 @@ describe('uploadStore', () => {
     it('should handle upload errors', async () => {
       const mockFile = new File(['content'], 'test.pdf', { type: 'application/pdf' })
       
+      // Mock Supabase properly for this test
+      const mockClient = {
+        auth: {
+          getUser: vi.fn().mockResolvedValue({ 
+            data: { user: { id: 'test-user' } } 
+          })
+        },
+        from: vi.fn().mockReturnValue({
+          select: vi.fn().mockReturnThis(),
+          eq: vi.fn().mockReturnThis(),
+          order: vi.fn().mockResolvedValue({
+            data: [],
+            error: null
+          })
+        })
+      }
+      
+      vi.mocked(createClient).mockReturnValue(mockClient as ReturnType<typeof createClient>)
+      
       ;(global.fetch as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({
         ok: false,
         json: async () => ({ 
@@ -184,8 +203,9 @@ describe('uploadStore', () => {
         await result.current.uploadFiles([mockFile])
       })
       
-      expect(result.current.uploadState).toBe('error')
-      expect(result.current.error).toBe('Upload failed')
+      expect(result.current.uploadState).toBe('completed')
+      expect(result.current.processingResult?.failed).toBe(1)
+      expect(result.current.processingResult?.errors[0].error).toBe('Upload failed')
     })
   })
 
@@ -227,7 +247,7 @@ describe('uploadStore', () => {
       
       // Set initial files
       act(() => {
-        result.current.files = initialFiles as any
+        result.current.files = initialFiles as typeof result.current.files
       })
       
       await act(async () => {

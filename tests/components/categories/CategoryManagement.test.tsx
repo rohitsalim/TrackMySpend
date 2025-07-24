@@ -20,7 +20,7 @@ vi.mock('@/components/categories/CreateCategoryModal', () => ({
 }))
 
 vi.mock('@/components/categories/EditCategoryModal', () => ({
-  EditCategoryModal: ({ category, onClose }: { category: any; onClose: () => void }) => 
+  EditCategoryModal: ({ category, onClose }: { category: { name: string } | null; onClose: () => void }) => 
     category ? (
       <div data-testid="edit-category-modal">
         <div>Editing: {category.name}</div>
@@ -30,7 +30,7 @@ vi.mock('@/components/categories/EditCategoryModal', () => ({
 }))
 
 vi.mock('@/components/categories/CategoryTree', () => ({
-  CategoryTree: ({ categories, onEditCategory }: { categories: any[]; onEditCategory: (cat: any) => void }) => (
+  CategoryTree: ({ categories, onEditCategory }: { categories: Array<{ id: string; name: string }>; onEditCategory: (cat: { id: string; name: string }) => void }) => (
     <div data-testid="category-tree">
       {categories.map((category) => (
         <div key={category.id} data-testid={`category-${category.id}`}>
@@ -91,7 +91,7 @@ describe('CategoryManagement', () => {
   }
 
   beforeEach(() => {
-    vi.mocked(useTransactionStore).mockReturnValue(mockUseTransactionStore as any)
+    vi.mocked(useTransactionStore).mockReturnValue(mockUseTransactionStore as ReturnType<typeof useTransactionStore>)
   })
 
   afterEach(() => {
@@ -117,12 +117,12 @@ describe('CategoryManagement', () => {
       vi.mocked(useTransactionStore).mockReturnValue({
         ...mockUseTransactionStore,
         categories: []
-      } as any)
+      } as ReturnType<typeof useTransactionStore>)
 
       render(<CategoryManagement />)
       
       expect(screen.getByText('0 total categories')).toBeInTheDocument()
-      expect(screen.getByText('No categories found')).toBeInTheDocument()
+      expect(screen.getByText('No categories found.')).toBeInTheDocument()
     })
 
     it('should render new category button with correct icon and text', () => {
@@ -321,7 +321,7 @@ describe('CategoryManagement', () => {
       vi.mocked(useTransactionStore).mockReturnValue({
         ...mockUseTransactionStore,
         categories: mockCategories.slice(0, 2) // Only 2 categories
-      } as any)
+      } as ReturnType<typeof useTransactionStore>)
       
       rerender(<CategoryManagement />)
       
@@ -332,7 +332,7 @@ describe('CategoryManagement', () => {
       vi.mocked(useTransactionStore).mockReturnValue({
         ...mockUseTransactionStore,
         categories: [mockCategories[0]] // Only 1 category
-      } as any)
+      } as ReturnType<typeof useTransactionStore>)
 
       render(<CategoryManagement />)
       

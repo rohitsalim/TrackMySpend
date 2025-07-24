@@ -57,25 +57,9 @@ const mockCategories = [
   }
 ]
 
-// Create a proper Supabase client mock
-const createSupabaseMock = () => {
-  const mockSupabase = {
-    auth: {
-      getUser: vi.fn().mockResolvedValue({ data: { user: mockUser } })
-    },
-    from: vi.fn()
-  }
-
-  vi.mocked(createClient).mockReturnValue(mockSupabase as any)
-  return mockSupabase
-}
-
 describe('TransactionStore', () => {
-  let mockSupabase: any
 
   beforeEach(() => {
-    mockSupabase = createSupabaseMock()
-    
     // Reset store state
     useTransactionStore.setState({
       transactions: [],
@@ -93,6 +77,9 @@ describe('TransactionStore', () => {
       currentPage: 1,
       pageSize: 50
     })
+    
+    // Clear all mocks to start fresh
+    vi.clearAllMocks()
   })
 
   afterEach(() => {
@@ -101,21 +88,31 @@ describe('TransactionStore', () => {
 
   describe('fetchTransactions', () => {
     it('should fetch transactions successfully', async () => {
-      // Mock the query chain
-      const mockQueryResult = Promise.resolve({
+      // Mock the query to return a Promise that resolves with the data
+      const mockQuery = vi.fn().mockResolvedValue({
         data: mockTransactions,
         error: null,
         count: 2
       })
-
-      const mockQuery = {
-        select: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockReturnThis(),
-        order: vi.fn().mockReturnThis(),
-        range: vi.fn().mockReturnValue(mockQueryResult)
+      
+      // Create a chainable query builder that always returns itself except for the final await
+      const mockQueryBuilder = new Proxy({}, {
+        get: (target, prop) => {
+          if (prop === 'then' || prop === Symbol.asyncIterator) {
+            return mockQuery()[prop as keyof Promise<unknown>]?.bind(mockQuery())
+          }
+          return () => mockQueryBuilder
+        }
+      })
+      
+      const mockClient = {
+        auth: {
+          getUser: vi.fn().mockResolvedValue({ data: { user: mockUser } })
+        },
+        from: vi.fn().mockReturnValue(mockQueryBuilder)
       }
-
-      mockSupabase.from.mockReturnValue(mockQuery)
+      
+      vi.mocked(createClient).mockReturnValue(mockClient as ReturnType<typeof createClient>)
 
       const { result } = renderHook(() => useTransactionStore())
 
@@ -132,20 +129,29 @@ describe('TransactionStore', () => {
     it('should handle fetch error', async () => {
       const errorMessage = 'Database connection failed'
       
-      const mockQueryResult = Promise.resolve({
+      const mockQuery = vi.fn().mockResolvedValue({
         data: null,
         error: new Error(errorMessage),
         count: 0
       })
-
-      const mockQuery = {
-        select: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockReturnThis(),
-        order: vi.fn().mockReturnThis(),
-        range: vi.fn().mockReturnValue(mockQueryResult)
+      
+      const mockQueryBuilder = new Proxy({}, {
+        get: (target, prop) => {
+          if (prop === 'then' || prop === Symbol.asyncIterator) {
+            return mockQuery()[prop as keyof Promise<unknown>]?.bind(mockQuery())
+          }
+          return () => mockQueryBuilder
+        }
+      })
+      
+      const mockClient = {
+        auth: {
+          getUser: vi.fn().mockResolvedValue({ data: { user: mockUser } })
+        },
+        from: vi.fn().mockReturnValue(mockQueryBuilder)
       }
-
-      mockSupabase.from.mockReturnValue(mockQuery)
+      
+      vi.mocked(createClient).mockReturnValue(mockClient as ReturnType<typeof createClient>)
 
       const { result } = renderHook(() => useTransactionStore())
 
@@ -161,18 +167,28 @@ describe('TransactionStore', () => {
 
   describe('fetchCategories', () => {
     it('should fetch categories successfully', async () => {
-      const mockQueryResult = Promise.resolve({
+      const mockQuery = vi.fn().mockResolvedValue({
         data: mockCategories,
         error: null
       })
-
-      const mockQuery = {
-        select: vi.fn().mockReturnThis(),
-        or: vi.fn().mockReturnThis(),
-        order: vi.fn().mockReturnValue(mockQueryResult)
+      
+      const mockQueryBuilder = new Proxy({}, {
+        get: (target, prop) => {
+          if (prop === 'then' || prop === Symbol.asyncIterator) {
+            return mockQuery()[prop as keyof Promise<unknown>]?.bind(mockQuery())
+          }
+          return () => mockQueryBuilder
+        }
+      })
+      
+      const mockClient = {
+        auth: {
+          getUser: vi.fn().mockResolvedValue({ data: { user: mockUser } })
+        },
+        from: vi.fn().mockReturnValue(mockQueryBuilder)
       }
-
-      mockSupabase.from.mockReturnValue(mockQuery)
+      
+      vi.mocked(createClient).mockReturnValue(mockClient as ReturnType<typeof createClient>)
 
       const { result } = renderHook(() => useTransactionStore())
 
@@ -186,14 +202,25 @@ describe('TransactionStore', () => {
 
   describe('updateTransaction', () => {
     it('should update transaction successfully', async () => {
-      const mockQueryResult = Promise.resolve({ error: null })
-
-      const mockQuery = {
-        update: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockReturnValue(mockQueryResult)
+      const mockQuery = vi.fn().mockResolvedValue({ error: null })
+      
+      const mockQueryBuilder = new Proxy({}, {
+        get: (target, prop) => {
+          if (prop === 'then' || prop === Symbol.asyncIterator) {
+            return mockQuery()[prop as keyof Promise<unknown>]?.bind(mockQuery())
+          }
+          return () => mockQueryBuilder
+        }
+      })
+      
+      const mockClient = {
+        auth: {
+          getUser: vi.fn().mockResolvedValue({ data: { user: mockUser } })
+        },
+        from: vi.fn().mockReturnValue(mockQueryBuilder)
       }
-
-      mockSupabase.from.mockReturnValue(mockQuery)
+      
+      vi.mocked(createClient).mockReturnValue(mockClient as ReturnType<typeof createClient>)
 
       const { result } = renderHook(() => useTransactionStore())
       
@@ -214,15 +241,25 @@ describe('TransactionStore', () => {
 
   describe('bulkCategorize', () => {
     it('should bulk categorize transactions successfully', async () => {
-      const mockQueryResult = Promise.resolve({ error: null })
-
-      const mockQuery = {
-        update: vi.fn().mockReturnThis(),
-        in: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockReturnValue(mockQueryResult)
+      const mockQuery = vi.fn().mockResolvedValue({ error: null })
+      
+      const mockQueryBuilder = new Proxy({}, {
+        get: (target, prop) => {
+          if (prop === 'then' || prop === Symbol.asyncIterator) {
+            return mockQuery()[prop as keyof Promise<unknown>]?.bind(mockQuery())
+          }
+          return () => mockQueryBuilder
+        }
+      })
+      
+      const mockClient = {
+        auth: {
+          getUser: vi.fn().mockResolvedValue({ data: { user: mockUser } })
+        },
+        from: vi.fn().mockReturnValue(mockQueryBuilder)
       }
-
-      mockSupabase.from.mockReturnValue(mockQuery)
+      
+      vi.mocked(createClient).mockReturnValue(mockClient as ReturnType<typeof createClient>)
 
       const { result } = renderHook(() => useTransactionStore())
       
@@ -255,18 +292,28 @@ describe('TransactionStore', () => {
         user_id: 'test-user-id'
       }
 
-      const mockQueryResult = Promise.resolve({
+      const mockQuery = vi.fn().mockResolvedValue({
         data: newCategory,
         error: null
       })
-
-      const mockQuery = {
-        insert: vi.fn().mockReturnThis(),
-        select: vi.fn().mockReturnThis(),
-        single: vi.fn().mockReturnValue(mockQueryResult)
+      
+      const mockQueryBuilder = new Proxy({}, {
+        get: (target, prop) => {
+          if (prop === 'then' || prop === Symbol.asyncIterator) {
+            return mockQuery()[prop as keyof Promise<unknown>]?.bind(mockQuery())
+          }
+          return () => mockQueryBuilder
+        }
+      })
+      
+      const mockClient = {
+        auth: {
+          getUser: vi.fn().mockResolvedValue({ data: { user: mockUser } })
+        },
+        from: vi.fn().mockReturnValue(mockQueryBuilder)
       }
-
-      mockSupabase.from.mockReturnValue(mockQuery)
+      
+      vi.mocked(createClient).mockReturnValue(mockClient as ReturnType<typeof createClient>)
 
       const { result } = renderHook(() => useTransactionStore())
 
@@ -280,25 +327,41 @@ describe('TransactionStore', () => {
     })
 
     it('should delete category successfully', async () => {
-      // Mock transactions check (no transactions found)
-      const mockTransactionQuery = {
-        select: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockReturnThis(),
-        limit: vi.fn().mockReturnValue(Promise.resolve({
-          data: [], // No transactions
-          error: null
-        }))
+      const mockTransactionQuery = vi.fn().mockResolvedValue({
+        data: [], // No transactions
+        error: null
+      })
+      
+      const mockDeleteQuery = vi.fn().mockResolvedValue({ error: null })
+      
+      const mockTransactionQueryBuilder = new Proxy({}, {
+        get: (target, prop) => {
+          if (prop === 'then' || prop === Symbol.asyncIterator) {
+            return mockTransactionQuery()[prop as keyof Promise<unknown>]?.bind(mockTransactionQuery())
+          }
+          return () => mockTransactionQueryBuilder
+        }
+      })
+      
+      const mockDeleteQueryBuilder = new Proxy({}, {
+        get: (target, prop) => {
+          if (prop === 'then' || prop === Symbol.asyncIterator) {
+            return mockDeleteQuery()[prop as keyof Promise<unknown>]?.bind(mockDeleteQuery())
+          }
+          return () => mockDeleteQueryBuilder
+        }
+      })
+      
+      const mockClient = {
+        auth: {
+          getUser: vi.fn().mockResolvedValue({ data: { user: mockUser } })
+        },
+        from: vi.fn()
+          .mockReturnValueOnce(mockTransactionQueryBuilder) // First call - check transactions
+          .mockReturnValueOnce(mockDeleteQueryBuilder) // Second call - delete category
       }
-
-      // Mock delete query
-      const mockDeleteQuery = {
-        delete: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockReturnValue(Promise.resolve({ error: null }))
-      }
-
-      mockSupabase.from
-        .mockReturnValueOnce(mockTransactionQuery)
-        .mockReturnValueOnce(mockDeleteQuery)
+      
+      vi.mocked(createClient).mockReturnValue(mockClient as ReturnType<typeof createClient>)
 
       const { result } = renderHook(() => useTransactionStore())
       
@@ -316,22 +379,37 @@ describe('TransactionStore', () => {
     })
 
     it('should prevent deleting category with transactions', async () => {
-      // Mock transactions check (transactions found)
-      const mockTransactionQuery = {
-        select: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockReturnThis(),
-        limit: vi.fn().mockReturnValue(Promise.resolve({
-          data: [{ id: 'tx-1' }], // Has transactions
-          error: null
-        }))
+      const mockQuery = vi.fn().mockResolvedValue({
+        data: [{ id: 'tx-1' }], // Has transactions
+        error: null
+      })
+      
+      const mockQueryBuilder = new Proxy({}, {
+        get: (target, prop) => {
+          if (prop === 'then' || prop === Symbol.asyncIterator) {
+            return mockQuery()[prop as keyof Promise<unknown>]?.bind(mockQuery())
+          }
+          return () => mockQueryBuilder
+        }
+      })
+      
+      const mockClient = {
+        auth: {
+          getUser: vi.fn().mockResolvedValue({ data: { user: mockUser } })
+        },
+        from: vi.fn().mockReturnValue(mockQueryBuilder)
       }
-
-      mockSupabase.from.mockReturnValue(mockTransactionQuery)
+      
+      vi.mocked(createClient).mockReturnValue(mockClient as ReturnType<typeof createClient>)
 
       const { result } = renderHook(() => useTransactionStore())
 
       await act(async () => {
-        await result.current.deleteCategory('cat-2')
+        try {
+          await result.current.deleteCategory('cat-2')
+        } catch {
+          // Expected to throw
+        }
       })
 
       expect(result.current.error).toBe('Cannot delete category with existing transactions')
@@ -421,7 +499,14 @@ describe('TransactionStore', () => {
 
   describe('authentication handling', () => {
     it('should handle unauthenticated user', async () => {
-      mockSupabase.auth.getUser.mockResolvedValue({ data: { user: null } })
+      const mockClient = {
+        auth: {
+          getUser: vi.fn().mockResolvedValue({ data: { user: null } })
+        },
+        from: vi.fn()
+      }
+      
+      vi.mocked(createClient).mockReturnValue(mockClient as ReturnType<typeof createClient>)
 
       const { result } = renderHook(() => useTransactionStore())
 

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import {
   Table,
   TableBody,
@@ -14,12 +14,20 @@ import { Badge } from '@/components/ui/badge'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Pagination } from '@/components/ui/pagination'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
+import { Input } from '@/components/ui/input'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { formatCurrency, formatDate } from '@/lib/utils/formatters'
-import { ArrowUpDown, Edit, Sparkles } from 'lucide-react'
-import { TransactionEditModal } from './TransactionEditModal'
+import { ArrowUpDown, Edit, Check, X, Sparkles } from 'lucide-react'
 import { BulkCategorizeModal } from './BulkCategorizeModal'
 import { BulkVendorResolveModal } from './BulkVendorResolveModal'
-import { getCategoryPath } from '@/types/categories'
+import { getCategoryPath, flattenCategoryTree, buildCategoryTree } from '@/types/categories'
+import { useTransactionStore } from '@/store/transaction-store'
 import type { Database } from '@/types/database'
 
 type Transaction = Database['public']['Tables']['transactions']['Row'] & {
@@ -53,12 +61,26 @@ export function TransactionList({
 }: TransactionListProps) {
   const [sortField, setSortField] = useState<keyof Transaction>('transaction_date')
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
-  const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null)
   const [selectedTransactions, setSelectedTransactions] = useState<Set<string>>(new Set())
   const [showBulkCategorize, setShowBulkCategorize] = useState(false)
   const [showBulkVendorResolve, setShowBulkVendorResolve] = useState(false)
+  
+  // In-place editing state
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [editForm, setEditForm] = useState<{
+    vendorName: string
+    categoryId: string | null
+  }>({ vendorName: '', categoryId: null })
+  const [isSaving, setIsSaving] = useState(false)
+  
+  const vendorInputRef = useRef<HTMLInputElement>(null)
+  const { updateTransaction } = useTransactionStore()
 
   const totalPages = Math.ceil(totalCount / pageSize)
+  
+  // Get hierarchical categories for dropdown
+  const categoryTree = buildCategoryTree(categories)
+  const flatCategories = flattenCategoryTree(categoryTree)
 
   const handleSort = (field: keyof Transaction) => {
     if (field === sortField) {
@@ -90,6 +112,78 @@ export function TransactionList({
 
   const isAllSelected = transactions.length > 0 && selectedTransactions.size === transactions.length
   const hasSelectedTransactions = selectedTransactions.size > 0
+  
+  // Start editing a transaction
+  const startEditing = (transaction: Transaction) => {
+    setEditingId(transaction.id)
+    setEditForm({
+      vendorName: transaction.vendor_name,
+      categoryId: transaction.category_id
+    })
+    // Focus vendor input after state update
+    setTimeout(() => vendorInputRef.current?.focus(), 0)
+  }
+  
+  // Cancel editing
+  const cancelEditing = () => {
+    setEditingId(null)
+    setEditForm({ vendorName: '', categoryId: null })
+  }
+  
+  // Save edited transaction
+  const saveEditing = async (transaction: Transaction) => {
+    setIsSaving(true)
+    
+    try {
+      // Update transaction
+      await updateTransaction(transaction.id, {
+        vendor_name: editForm.vendorName,
+        category_id: editForm.categoryId === 'none' ? null : editForm.categoryId,
+      })
+      
+      // Learn from user correction if vendor name changed
+      if (editForm.vendorName !== transaction.vendor_name && 
+          transaction.vendor_name_original && 
+          editForm.vendorName.trim().length > 0) {
+        
+        try {
+          await fetch('/api/vendors/mappings', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              original_text: transaction.vendor_name_original,
+              mapped_name: editForm.vendorName,
+              confidence: 0.95,
+              source: 'user'
+            })
+          })
+        } catch (learningError) {
+          console.warn('Failed to save vendor mapping for learning:', learningError)
+        }
+      }
+      
+      cancelEditing()
+    } catch (error) {
+      console.error('Failed to update transaction:', error)
+    } finally {
+      setIsSaving(false)
+    }
+  }
+  
+  // Handle keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (editingId) {
+        if (e.key === 'Escape') {
+          e.preventDefault()
+          cancelEditing()
+        }
+      }
+    }
+    
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [editingId])
 
   const sortedTransactions = [...transactions].sort((a, b) => {
     const aValue = a[sortField]
@@ -189,7 +283,7 @@ export function TransactionList({
                   <ArrowUpDown className="ml-2 h-4 w-4" />
                 </Button>
               </TableHead>
-              <TableHead className="w-[140px]">Category</TableHead>
+              <TableHead className="w-[120px]">Category</TableHead>
               <TableHead className="text-right w-[120px]">
                 <Button
                   variant="ghost"
@@ -202,7 +296,7 @@ export function TransactionList({
                 </Button>
               </TableHead>
               <TableHead className="w-[120px]">Bank</TableHead>
-              <TableHead className="w-[80px]">Actions</TableHead>
+              <TableHead className="w-[60px]">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -226,47 +320,90 @@ export function TransactionList({
                     {formatDate(transaction.transaction_date)}
                   </TableCell>
                   <TableCell className="max-w-[300px]">
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <div className="cursor-help">
-                          <p className="font-medium">
-                            {truncateText(transaction.vendor_name, 45)}
+                    {editingId === transaction.id ? (
+                      <div className="space-y-1">
+                        <Input
+                          ref={vendorInputRef}
+                          value={editForm.vendorName}
+                          onChange={(e) => setEditForm({ ...editForm, vendorName: e.target.value })}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault()
+                              saveEditing(transaction)
+                            }
+                          }}
+                          className="h-8 text-sm"
+                          disabled={isSaving}
+                        />
+                        {transaction.vendor_name !== transaction.vendor_name_original && (
+                          <p className="text-xs text-muted-foreground px-1">
+                            {truncateText(transaction.vendor_name_original, 45)}
                           </p>
-                          {transaction.vendor_name !== transaction.vendor_name_original && (
-                            <p className="text-xs text-muted-foreground">
-                              {truncateText(transaction.vendor_name_original, 45)}
-                            </p>
-                          )}
-                        </div>
-                      </TooltipTrigger>
-                      <TooltipContent side="top" className="max-w-sm">
-                        <div>
-                          <p className="font-medium">{transaction.vendor_name}</p>
-                          {transaction.vendor_name !== transaction.vendor_name_original && (
-                            <p className="text-xs text-muted-foreground mt-1">
-                              Original: {transaction.vendor_name_original}
-                            </p>
-                          )}
-                        </div>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TableCell>
-                  <TableCell>
-                    {transaction.categories ? (
+                        )}
+                      </div>
+                    ) : (
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <Badge variant="secondary" className="font-normal cursor-help">
-                            {transaction.categories.name}
-                          </Badge>
+                          <div className="cursor-help">
+                            <p className="font-medium">
+                              {truncateText(transaction.vendor_name, 45)}
+                            </p>
+                            {transaction.vendor_name !== transaction.vendor_name_original && (
+                              <p className="text-xs text-muted-foreground">
+                                {truncateText(transaction.vendor_name_original, 45)}
+                              </p>
+                            )}
+                          </div>
                         </TooltipTrigger>
-                        <TooltipContent>
-                          {getCategoryPath(transaction.categories.id, categories)}
+                        <TooltipContent side="top" className="max-w-sm">
+                          <div>
+                            <p className="font-medium">{transaction.vendor_name}</p>
+                            {transaction.vendor_name !== transaction.vendor_name_original && (
+                              <p className="text-xs text-muted-foreground mt-1">
+                                Original: {transaction.vendor_name_original}
+                              </p>
+                            )}
+                          </div>
                         </TooltipContent>
                       </Tooltip>
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    {editingId === transaction.id ? (
+                      <Select 
+                        value={editForm.categoryId || 'none'} 
+                        onValueChange={(value) => setEditForm({ ...editForm, categoryId: value })}
+                        disabled={isSaving}
+                      >
+                        <SelectTrigger className="h-8 text-sm">
+                          <SelectValue placeholder="Select a category" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none">Uncategorized</SelectItem>
+                          {flatCategories.map(({ category, level }) => (
+                            <SelectItem key={category.id} value={category.id}>
+                              {'  '.repeat(level)}{category.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     ) : (
-                      <Badge variant="outline" className="font-normal">
-                        Uncategorized
-                      </Badge>
+                      transaction.categories ? (
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Badge variant="secondary" className="font-normal cursor-help">
+                              {transaction.categories.name}
+                            </Badge>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            {getCategoryPath(transaction.categories.id, categories)}
+                          </TooltipContent>
+                        </Tooltip>
+                      ) : (
+                        <Badge variant="outline" className="font-normal">
+                          Uncategorized
+                        </Badge>
+                      )
                     )}
                   </TableCell>
                   <TableCell className="text-right">
@@ -283,15 +420,40 @@ export function TransactionList({
                     </span>
                   </TableCell>
                   <TableCell>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => setEditingTransaction(transaction)}
-                      className="h-8 w-8"
-                    >
-                      <Edit className="h-4 w-4" />
-                      <span className="sr-only">Edit transaction</span>
-                    </Button>
+                    {editingId === transaction.id ? (
+                      <div className="flex gap-1">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => saveEditing(transaction)}
+                          className="h-8 w-8 text-green-600 hover:text-green-700 hover:bg-green-50"
+                          disabled={isSaving}
+                        >
+                          <Check className="h-4 w-4" />
+                          <span className="sr-only">Save changes</span>
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={cancelEditing}
+                          className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50"
+                          disabled={isSaving}
+                        >
+                          <X className="h-4 w-4" />
+                          <span className="sr-only">Cancel editing</span>
+                        </Button>
+                      </div>
+                    ) : (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => startEditing(transaction)}
+                        className="h-8 w-8"
+                      >
+                        <Edit className="h-4 w-4" />
+                        <span className="sr-only">Edit transaction</span>
+                      </Button>
+                    )}
                   </TableCell>
                 </TableRow>
               ))
@@ -310,14 +472,6 @@ export function TransactionList({
           </div>
         )}
       </div>
-      
-      {/* Edit Modal */}
-      {editingTransaction && (
-        <TransactionEditModal
-          transaction={editingTransaction}
-          onClose={() => setEditingTransaction(null)}
-        />
-      )}
       
       {/* Bulk Categorize Modal */}
       {showBulkCategorize && (
