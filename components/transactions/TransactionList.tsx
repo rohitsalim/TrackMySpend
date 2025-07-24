@@ -251,7 +251,8 @@ export function TransactionList({
           </div>
         )}
         
-        <Table>
+        <div className="overflow-x-auto">
+          <Table>
           <TableHeader>
             <TableRow>
               <TableHead className="w-[45px]">
@@ -261,7 +262,7 @@ export function TransactionList({
                   aria-label="Select all transactions"
                 />
               </TableHead>
-              <TableHead className="w-[120px]">
+              <TableHead className="w-[110px]">
                 <Button
                   variant="ghost"
                   size="sm"
@@ -272,7 +273,7 @@ export function TransactionList({
                   <ArrowUpDown className="ml-2 h-4 w-4" />
                 </Button>
               </TableHead>
-              <TableHead className="w-[300px]">
+              <TableHead className="min-w-[320px]">
                 <Button
                   variant="ghost"
                   size="sm"
@@ -295,7 +296,7 @@ export function TransactionList({
                   <ArrowUpDown className="ml-2 h-4 w-4" />
                 </Button>
               </TableHead>
-              <TableHead className="w-[120px]">Bank</TableHead>
+              <TableHead className="w-[90px]">Bank</TableHead>
               <TableHead className="w-[60px]">Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -319,7 +320,7 @@ export function TransactionList({
                   <TableCell className="font-medium">
                     {formatDate(transaction.transaction_date)}
                   </TableCell>
-                  <TableCell className="max-w-[300px]">
+                  <TableCell className="min-w-[320px]">
                     {editingId === transaction.id ? (
                       <div className="space-y-1">
                         <Input
@@ -337,7 +338,7 @@ export function TransactionList({
                         />
                         {transaction.vendor_name !== transaction.vendor_name_original && (
                           <p className="text-xs text-muted-foreground px-1">
-                            {truncateText(transaction.vendor_name_original, 45)}
+                            {truncateText(transaction.vendor_name_original, 55)}
                           </p>
                         )}
                       </div>
@@ -346,11 +347,11 @@ export function TransactionList({
                         <TooltipTrigger asChild>
                           <div className="cursor-help">
                             <p className="font-medium">
-                              {truncateText(transaction.vendor_name, 45)}
+                              {truncateText(transaction.vendor_name, 55)}
                             </p>
                             {transaction.vendor_name !== transaction.vendor_name_original && (
                               <p className="text-xs text-muted-foreground">
-                                {truncateText(transaction.vendor_name_original, 45)}
+                                {truncateText(transaction.vendor_name_original, 55)}
                               </p>
                             )}
                           </div>
@@ -416,7 +417,7 @@ export function TransactionList({
                   </TableCell>
                   <TableCell>
                     <span className="text-sm text-muted-foreground">
-                      HDFC Bank
+                      HDFC
                     </span>
                   </TableCell>
                   <TableCell>
@@ -460,6 +461,7 @@ export function TransactionList({
             )}
           </TableBody>
         </Table>
+        </div>
 
         {/* Pagination */}
         {totalPages > 1 && (
