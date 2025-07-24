@@ -110,7 +110,7 @@ export class VendorResolver {
 
       // Use Gemini 2.5 Flash with Google Search grounding and thinking budget
       const response = await generateText({
-        model: google('gemini-2.5-flash', {
+        model: google('gemini-2.5-pro', {
           useSearchGrounding: true,
           dynamicRetrievalConfig: {
             mode: 'MODE_DYNAMIC',
@@ -120,7 +120,7 @@ export class VendorResolver {
         providerOptions: {
           google: {
             thinkingConfig: {
-              thinkingBudget: 2048
+              thinkingBudget: 8192
             }
           }
         },
@@ -157,14 +157,14 @@ export class VendorResolver {
     let prompt = `You are a financial transaction analyst specializing in identifying Indian businesses and merchants from transaction descriptions. Your goal is to find the most recognizable BRAND NAME that customers would know.
 
 Think through this step by step:
-1. First, identify any payment gateway codes (RAZOR, PAYU, UPI, etc.)
-2. Look for business/company identifiers in the transaction string
-3. Search online for information about this company to find their brand name
-4. Consider both the legal company name AND the popular brand name
-5. Prioritize the brand name that customers would recognize over the legal entity name
-6. For Indian startups and companies, use their commonly known brand names
+1. First, identify if this is a UPI transaction and determine if it's to a person or company
+2. For UPI person payments: Extract and return the clean person's name
+3. For UPI company payments: Focus on de-anonymizing the business/merchant name
+4. For non-UPI transactions: Identify payment gateway codes (RAZOR, PAYU, etc.) and underlying merchants
+5. Search online for information about companies to find their brand names
+6. Prioritize brand names that customers would recognize over legal entity names
 
-Task: Identify the consumer-facing BRAND NAME for this transaction: "${original_text}"
+Task: Identify the vendor for this transaction: "${original_text}"
 
 Context:`
 
@@ -181,30 +181,44 @@ Context:`
     prompt += `
 
 Critical Instructions:
-1. SEARCH ONLINE to find current information about this business
+
+UPI TRANSACTION HANDLING:
+1. If the transaction starts with "UPI-" or contains UPI patterns:
+   - Check if it's a PERSON payment: Look for individual names, phone numbers, UPI handles like "JOHN DOE", "REKHA P-9611834117", "username@paytm"
+   - For PERSON payments: Return the clean person name (e.g., "UPI-REKHA P-9611834117" → "Rekha P")
+   - For COMPANY payments: Identify and de-anonymize the business name
+
+2. UPI Person Payment Examples:
+   - "UPI-REKHA P-9611834117eYBL" → "Rekha P"
+   - "UPI-SYED NAZIM" → "Syed Nazim" 
+   - "UPI-SHAHNAWAZ ALAM" → "Shahnawaz Alam"
+   - "JOHN.DOE@paytm" → "John Doe"
+
+3. UPI Company Payment Examples:
+   - "UPI-AMAZON INDIA" → "Amazon" (search online to confirm)
+   - "UPI-BHARATPE-MERCHANT123" → "BharatPe"
+   - "UPI-SWIGGY*ORDER12345" → "Swiggy"
+
+NON-UPI TRANSACTION HANDLING:
+1. SEARCH ONLINE to find current information about businesses
 2. PRIORITIZE BRAND NAMES over legal company names
 3. For Indian companies, use their popular brand/app names (e.g., "Hudle" not "Hsquare Sports Private Limited")
-4. For startups and tech companies, use their consumer-facing brand names
-5. If it's a payment gateway transaction, identify the underlying merchant's brand name
-6. Consider common Indian business patterns and naming conventions
-7. Use web search results to verify and find the most current brand name
+4. If it's a payment gateway transaction, identify the underlying merchant's brand name
 
 Brand Name Priority Examples:
 - "HSQUARE SPORTS" → "Hudle" (the popular sports app brand)
 - "BUNDL TECHNOLOGIES" → "Swiggy" (the food delivery brand)
 - "ANI TECHNOLOGIES" → "Ola" (the ride-hailing brand)
 - "ZOMATO MEDIA" → "Zomato" (the brand everyone knows)
-- "OYO HOTELS" → "OYO" (the brand name)
 
 Payment Gateway Patterns:
 - "RAZOR1234*SWIGGY" → "Swiggy"
 - "PAYU*BOOKMYSHOW" → "BookMyShow"
-- "UPI-BHARATPE-MERCHANT123" → "BharatPe"
 
 Response format:
-Business Name: [Consumer-facing brand name]
+Business Name: [Consumer-facing brand name or clean person name]
 Confidence: [0.0-1.0 confidence score]
-Reasoning: [Brief explanation of brand identification]`
+Reasoning: [Brief explanation of identification - specify if it's a UPI person payment, UPI company payment, or regular business]`
 
     return prompt
   }

@@ -23,12 +23,14 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { formatCurrency, formatDate } from '@/lib/utils/formatters'
-import { ArrowUpDown, Edit, Check, X, Sparkles } from 'lucide-react'
+import { ArrowUpDown, Edit, Check, X, Sparkles, Loader2 } from 'lucide-react'
 import { BulkCategorizeModal } from './BulkCategorizeModal'
 import { BulkVendorResolveModal } from './BulkVendorResolveModal'
 import { getCategoryPath, flattenCategoryTree, buildCategoryTree } from '@/types/categories'
 import { useTransactionStore } from '@/store/transaction-store'
+import { TextShimmer } from '@/components/ui/text-shimmer'
 import type { Database } from '@/types/database'
+import type { VendorResolutionRequest, VendorAPIResponse, VendorResolutionResponse } from '@/types/vendor-resolution'
 
 type Transaction = Database['public']['Tables']['transactions']['Row'] & {
   categories?: Database['public']['Tables']['categories']['Row'] | null
@@ -64,6 +66,10 @@ export function TransactionList({
   const [selectedTransactions, setSelectedTransactions] = useState<Set<string>>(new Set())
   const [showBulkCategorize, setShowBulkCategorize] = useState(false)
   const [showBulkVendorResolve, setShowBulkVendorResolve] = useState(false)
+  
+  // Individual vendor resolution state
+  const [resolvingVendors, setResolvingVendors] = useState<Set<string>>(new Set())
+  const [resolvedVendors, setResolvedVendors] = useState<Map<string, { name: string, timestamp: number }>>(new Map())
   
   // In-place editing state
   const [editingId, setEditingId] = useState<string | null>(null)
@@ -168,6 +174,98 @@ export function TransactionList({
     } finally {
       setIsSaving(false)
     }
+  }
+
+  // Individual vendor resolution function
+  const resolveIndividualVendor = async (transaction: Transaction) => {
+    if (resolvingVendors.has(transaction.id) || !transaction.vendor_name_original || resolvingVendors.size >= 2) {
+      return
+    }
+
+    // Add to resolving set
+    setResolvingVendors(prev => new Set(prev).add(transaction.id))
+
+    try {
+      const request: VendorResolutionRequest = {
+        original_text: transaction.vendor_name_original,
+        transaction_id: transaction.id,
+        context: {
+          amount: transaction.amount.toString(),
+          date: transaction.transaction_date,
+          bank_name: 'HDFC Bank'
+        }
+      }
+
+      const response = await fetch('/api/vendors/resolve', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(request)
+      })
+
+      const result: VendorAPIResponse<VendorResolutionResponse['data']> = await response.json()
+
+      if (result.success && result.data) {
+        // Update transaction in database
+        await updateTransaction(transaction.id, {
+          vendor_name: result.data.resolved_name
+        })
+
+        // Add to resolved cache for UI feedback
+        setResolvedVendors(prev => {
+          const newMap = new Map(prev)
+          newMap.set(transaction.id, { 
+            name: result.data!.resolved_name, 
+            timestamp: Date.now() 
+          })
+          return newMap
+        })
+
+        // Clear resolved cache after 3 seconds
+        setTimeout(() => {
+          setResolvedVendors(prev => {
+            const newMap = new Map(prev)
+            newMap.delete(transaction.id)
+            return newMap
+          })
+        }, 3000)
+      } else {
+        console.error('Vendor resolution failed:', 'error' in result ? result.error?.message : 'Unknown error')
+        // Could add toast notification here for user feedback
+      }
+    } catch (error) {
+      console.error('Failed to resolve vendor:', error)
+      // Could add toast notification here for user feedback
+    } finally {
+      // Remove from resolving set
+      setResolvingVendors(prev => {
+        const newSet = new Set(prev)
+        newSet.delete(transaction.id)
+        return newSet
+      })
+    }
+  }
+
+  // Helper function to determine if vendor should show resolve button
+  const shouldShowResolveButton = (transaction: Transaction): boolean => {
+    // Don't show if editing, already resolving, or no original text
+    if (editingId === transaction.id || 
+        resolvingVendors.has(transaction.id) || 
+        !transaction.vendor_name_original) {
+      return false
+    }
+
+    // Don't show if we already have 2 requests in progress
+    if (resolvingVendors.size >= 2) {
+      return false
+    }
+
+    // Show button for cryptic vendor names (similar logic to bulk resolve)
+    const hasTransactionCodes = /[*#0-9]{3,}|RAZOR|PAYU|UPI|NEFT|IMPS|BILLDESK|CCAVENUE|HDFC|ICICI|AXIS|SBI/.test(transaction.vendor_name_original)
+    const isLongCryptic = transaction.vendor_name_original.length > 20 && /[A-Z0-9]{8,}/.test(transaction.vendor_name_original)
+    const isUnclearVendor = transaction.vendor_name === transaction.vendor_name_original && 
+                           (hasTransactionCodes || isLongCryptic)
+
+    return isUnclearVendor
   }
   
   // Handle keyboard shortcuts
@@ -343,30 +441,86 @@ export function TransactionList({
                         )}
                       </div>
                     ) : (
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <div className="cursor-help">
-                            <p className="font-medium">
-                              {truncateText(transaction.vendor_name, 55)}
-                            </p>
-                            {transaction.vendor_name !== transaction.vendor_name_original && (
-                              <p className="text-xs text-muted-foreground">
-                                {truncateText(transaction.vendor_name_original, 55)}
-                              </p>
-                            )}
-                          </div>
-                        </TooltipTrigger>
-                        <TooltipContent side="top" className="max-w-sm">
-                          <div>
-                            <p className="font-medium">{transaction.vendor_name}</p>
-                            {transaction.vendor_name !== transaction.vendor_name_original && (
-                              <p className="text-xs text-muted-foreground mt-1">
-                                Original: {transaction.vendor_name_original}
-                              </p>
-                            )}
-                          </div>
-                        </TooltipContent>
-                      </Tooltip>
+                      <div className="flex items-center gap-2">
+                        <div className="flex-1">
+                          {resolvingVendors.has(transaction.id) ? (
+                            <div className="space-y-1">
+                              <TextShimmer 
+                                as="p" 
+                                className="font-medium text-sm"
+                                duration={1.5}
+                                baseColor="#9333ea"
+                                shimmerColor="#ddd6fe"
+                              >
+                                Identifying...
+                              </TextShimmer>
+                              {transaction.vendor_name !== transaction.vendor_name_original && (
+                                <p className="text-xs text-muted-foreground">
+                                  {truncateText(transaction.vendor_name_original, 55)}
+                                </p>
+                              )}
+                            </div>
+                          ) : (
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <div className="cursor-help">
+                                  <p className={`font-medium ${resolvedVendors.has(transaction.id) ? 'text-purple-600' : ''}`}>
+                                    {truncateText(
+                                      resolvedVendors.has(transaction.id) 
+                                        ? resolvedVendors.get(transaction.id)!.name 
+                                        : transaction.vendor_name, 
+                                      55
+                                    )}
+                                  </p>
+                                  {transaction.vendor_name !== transaction.vendor_name_original && (
+                                    <p className="text-xs text-muted-foreground">
+                                      {truncateText(transaction.vendor_name_original, 55)}
+                                    </p>
+                                  )}
+                                </div>
+                              </TooltipTrigger>
+                              <TooltipContent side="top" className="max-w-sm">
+                                <div>
+                                  <p className={`font-medium ${resolvedVendors.has(transaction.id) ? 'text-purple-600' : ''}`}>
+                                    {resolvedVendors.has(transaction.id) 
+                                      ? resolvedVendors.get(transaction.id)!.name 
+                                      : transaction.vendor_name}
+                                  </p>
+                                  {transaction.vendor_name !== transaction.vendor_name_original && (
+                                    <p className="text-xs text-muted-foreground mt-1">
+                                      Original: {transaction.vendor_name_original}
+                                    </p>
+                                  )}
+                                </div>
+                              </TooltipContent>
+                            </Tooltip>
+                          )}
+                        </div>
+                        
+                        {/* Resolve Button */}
+                        {shouldShowResolveButton(transaction) && (
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-6 w-6 p-0 opacity-60 hover:opacity-100"
+                                onClick={() => resolveIndividualVendor(transaction)}
+                                disabled={resolvingVendors.has(transaction.id) || resolvingVendors.size >= 2}
+                              >
+                                {resolvingVendors.has(transaction.id) ? (
+                                  <Loader2 className="h-3 w-3 animate-spin" />
+                                ) : (
+                                  <Sparkles className="h-3 w-3" />
+                                )}
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent side="top">
+                              <p>Unmask Vendor</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        )}
+                      </div>
                     )}
                   </TableCell>
                   <TableCell>
@@ -450,6 +604,7 @@ export function TransactionList({
                         size="icon"
                         onClick={() => startEditing(transaction)}
                         className="h-8 w-8"
+                        disabled={resolvingVendors.has(transaction.id)}
                       >
                         <Edit className="h-4 w-4" />
                         <span className="sr-only">Edit transaction</span>
