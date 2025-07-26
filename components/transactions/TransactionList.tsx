@@ -24,9 +24,8 @@ import {
 } from '@/components/ui/select'
 import { formatCurrency, formatDate } from '@/lib/utils/formatters'
 import { ArrowUpDown, Edit, Check, X, Sparkles, Loader2 } from 'lucide-react'
-import { BulkCategorizeModal } from './BulkCategorizeModal'
-import { BulkVendorResolveModal } from './BulkVendorResolveModal'
 import { getCategoryPath, flattenCategoryTree, buildCategoryTree } from '@/types/categories'
+import { getCategoryBadgeClasses } from '@/lib/utils/category-colors'
 import { useTransactionStore } from '@/store/transaction-store'
 import { TextShimmer } from '@/components/ui/text-shimmer'
 import type { Database } from '@/types/database'
@@ -64,12 +63,14 @@ export function TransactionList({
   const [sortField, setSortField] = useState<keyof Transaction>('transaction_date')
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
   const [selectedTransactions, setSelectedTransactions] = useState<Set<string>>(new Set())
-  const [showBulkCategorize, setShowBulkCategorize] = useState(false)
-  const [showBulkVendorResolve, setShowBulkVendorResolve] = useState(false)
   
   // Individual vendor resolution state
   const [resolvingVendors, setResolvingVendors] = useState<Set<string>>(new Set())
   const [resolvedVendors, setResolvedVendors] = useState<Map<string, { name: string, timestamp: number }>>(new Map())
+  
+  // Individual category resolution state
+  const [resolvingCategories, setResolvingCategories] = useState<Set<string>>(new Set())
+  const [resolvedCategories, setResolvedCategories] = useState<Map<string, { category: { id: string, name: string }, timestamp: number }>>(new Map())
   
   // In-place editing state
   const [editingId, setEditingId] = useState<string | null>(null)
@@ -80,7 +81,7 @@ export function TransactionList({
   const [isSaving, setIsSaving] = useState(false)
   
   const vendorInputRef = useRef<HTMLInputElement>(null)
-  const { updateTransaction } = useTransactionStore()
+  const { updateTransaction, updateTransactionCategory } = useTransactionStore()
 
   const totalPages = Math.ceil(totalCount / pageSize)
   
@@ -141,11 +142,29 @@ export function TransactionList({
     setIsSaving(true)
     
     try {
-      // Update transaction
-      await updateTransaction(transaction.id, {
-        vendor_name: editForm.vendorName,
-        category_id: editForm.categoryId === 'none' ? null : editForm.categoryId,
-      })
+      // Update vendor name if changed
+      if (editForm.vendorName !== transaction.vendor_name) {
+        await updateTransaction(transaction.id, {
+          vendor_name: editForm.vendorName,
+        })
+      }
+      
+      // Update category if changed
+      if (editForm.categoryId !== transaction.category_id) {
+        const newCategoryId = editForm.categoryId === 'none' ? null : editForm.categoryId
+        if (newCategoryId) {
+          await updateTransactionCategory(
+            transaction.id,
+            newCategoryId,
+            categories.find(cat => cat.id === newCategoryId)
+          )
+        } else {
+          // Remove category
+          await updateTransaction(transaction.id, {
+            category_id: null,
+          })
+        }
+      }
       
       // Learn from user correction if vendor name changed
       if (editForm.vendorName !== transaction.vendor_name && 
@@ -245,6 +264,91 @@ export function TransactionList({
     }
   }
 
+  // Individual category resolution function
+  const resolveIndividualCategory = async (transaction: Transaction) => {
+    if (resolvingCategories.has(transaction.id) || resolvingCategories.size >= 2) {
+      return
+    }
+
+    setResolvingCategories(prev => new Set(prev).add(transaction.id))
+
+    try {
+      const response = await fetch('/api/categories/resolve', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          transactionId: transaction.id,
+          vendorName: transaction.vendor_name,
+          amount: Number(transaction.amount),
+          transactionType: transaction.type,
+          description: transaction.vendor_name_original,
+          transactionDate: transaction.transaction_date
+        }),
+      })
+
+      const result = await response.json()
+
+      if (result.success && result.data) {
+        const categoryData = {
+          id: result.data.categoryId,
+          name: result.data.categoryName
+        }
+
+        // Update the transaction category using the specialized method
+        await updateTransactionCategory(
+          transaction.id, 
+          result.data.categoryId,
+          categories.find(cat => cat.id === result.data.categoryId)
+        )
+
+        // Track the resolved category for visual feedback
+        setResolvedCategories(prev => new Map(prev).set(transaction.id, {
+          category: categoryData,
+          timestamp: Date.now()
+        }))
+
+        // Clear resolved cache after 3 seconds
+        setTimeout(() => {
+          setResolvedCategories(prev => {
+            const newMap = new Map(prev)
+            newMap.delete(transaction.id)
+            return newMap
+          })
+        }, 3000)
+      } else {
+        console.error('Category resolution failed:', result.error?.message || 'Unknown error')
+      }
+    } catch (error) {
+      console.error('Error resolving category:', error)
+    } finally {
+      setResolvingCategories(prev => {
+        const newSet = new Set(prev)
+        newSet.delete(transaction.id)
+        return newSet
+      })
+    }
+  }
+
+  // Helper function to determine if category should show resolve button
+  const shouldShowCategoryResolveButton = (transaction: Transaction): boolean => {
+    // Don't show if editing, already resolving, or already has category
+    if (editingId === transaction.id || 
+        resolvingCategories.has(transaction.id) || 
+        transaction.category_id) {
+      return false
+    }
+
+    // Don't show if we already have 2 requests in progress
+    if (resolvingCategories.size >= 2) {
+      return false
+    }
+
+    // Show for transactions without category
+    return true
+  }
+
   // Helper function to determine if vendor should show resolve button
   const shouldShowResolveButton = (transaction: Transaction): boolean => {
     // Don't show if editing, already resolving, or no original text
@@ -323,22 +427,6 @@ export function TransactionList({
                 Clear selection
               </Button>
               <Button
-                variant="default"
-                size="sm"
-                onClick={() => setShowBulkVendorResolve(true)}
-                className="bg-blue-600 hover:bg-blue-700"
-              >
-                <Sparkles className="h-4 w-4 mr-1" />
-                Resolve Vendors
-              </Button>
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={() => setShowBulkCategorize(true)}
-              >
-                Bulk categorize
-              </Button>
-              <Button
                 variant="destructive"
                 size="sm"
                 disabled
@@ -371,7 +459,8 @@ export function TransactionList({
                   <ArrowUpDown className="ml-2 h-4 w-4" />
                 </Button>
               </TableHead>
-              <TableHead className="min-w-[320px]">
+              <TableHead className="w-[30px]"></TableHead>
+              <TableHead className="min-w-[280px]">
                 <Button
                   variant="ghost"
                   size="sm"
@@ -382,6 +471,7 @@ export function TransactionList({
                   <ArrowUpDown className="ml-2 h-4 w-4" />
                 </Button>
               </TableHead>
+              <TableHead className="w-[30px]"></TableHead>
               <TableHead className="w-[120px]">Category</TableHead>
               <TableHead className="text-right w-[120px]">
                 <Button
@@ -401,7 +491,7 @@ export function TransactionList({
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={7} className="text-center py-8">
+                <TableCell colSpan={9} className="text-center py-8">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
                 </TableCell>
               </TableRow>
@@ -418,7 +508,33 @@ export function TransactionList({
                   <TableCell className="font-medium">
                     {formatDate(transaction.transaction_date)}
                   </TableCell>
-                  <TableCell className="min-w-[320px]">
+                  {/* Vendor Resolve Button Column */}
+                  <TableCell className="w-[30px] p-1 pr-0">
+                    {shouldShowResolveButton(transaction) && (
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-6 w-6 p-0 opacity-60 hover:opacity-100 text-purple-600"
+                            onClick={() => resolveIndividualVendor(transaction)}
+                            disabled={resolvingVendors.has(transaction.id) || resolvingVendors.size >= 2}
+                          >
+                            {resolvingVendors.has(transaction.id) ? (
+                              <Loader2 className="h-3 w-3 animate-spin" />
+                            ) : (
+                              <Sparkles className="h-3 w-3" />
+                            )}
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent side="top">
+                          <p>Unmask Vendor</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    )}
+                  </TableCell>
+                  {/* Vendor Column */}
+                  <TableCell className="min-w-[280px] pl-1">
                     {editingId === transaction.id ? (
                       <div className="space-y-1">
                         <Input
@@ -441,89 +557,89 @@ export function TransactionList({
                         )}
                       </div>
                     ) : (
-                      <div className="flex items-center gap-2">
-                        <div className="flex-1">
-                          {resolvingVendors.has(transaction.id) ? (
-                            <div className="space-y-1">
-                              <TextShimmer 
-                                as="p" 
-                                className="font-medium text-sm"
-                                duration={1.5}
-                                baseColor="#9333ea"
-                                shimmerColor="#ddd6fe"
-                              >
-                                Identifying...
-                              </TextShimmer>
-                              {transaction.vendor_name !== transaction.vendor_name_original && (
-                                <p className="text-xs text-muted-foreground">
-                                  {truncateText(transaction.vendor_name_original, 55)}
-                                </p>
-                              )}
-                            </div>
-                          ) : (
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <div className="cursor-help">
-                                  <p className={`font-medium ${resolvedVendors.has(transaction.id) ? 'text-purple-600' : ''}`}>
-                                    {truncateText(
-                                      resolvedVendors.has(transaction.id) 
-                                        ? resolvedVendors.get(transaction.id)!.name 
-                                        : transaction.vendor_name, 
-                                      55
-                                    )}
-                                  </p>
-                                  {transaction.vendor_name !== transaction.vendor_name_original && (
-                                    <p className="text-xs text-muted-foreground">
-                                      {truncateText(transaction.vendor_name_original, 55)}
-                                    </p>
-                                  )}
-                                </div>
-                              </TooltipTrigger>
-                              <TooltipContent side="top" className="max-w-sm">
-                                <div>
-                                  <p className={`font-medium ${resolvedVendors.has(transaction.id) ? 'text-purple-600' : ''}`}>
-                                    {resolvedVendors.has(transaction.id) 
-                                      ? resolvedVendors.get(transaction.id)!.name 
-                                      : transaction.vendor_name}
-                                  </p>
-                                  {transaction.vendor_name !== transaction.vendor_name_original && (
-                                    <p className="text-xs text-muted-foreground mt-1">
-                                      Original: {transaction.vendor_name_original}
-                                    </p>
-                                  )}
-                                </div>
-                              </TooltipContent>
-                            </Tooltip>
-                          )}
-                        </div>
-                        
-                        {/* Resolve Button */}
-                        {shouldShowResolveButton(transaction) && (
+                      <div>
+                        {resolvingVendors.has(transaction.id) ? (
+                          <div className="space-y-1">
+                            <TextShimmer 
+                              as="p" 
+                              className="font-medium text-sm"
+                              duration={1.5}
+                              baseColor="#9333ea"
+                              shimmerColor="#ddd6fe"
+                            >
+                              Identifying...
+                            </TextShimmer>
+                            {transaction.vendor_name !== transaction.vendor_name_original && (
+                              <p className="text-xs text-muted-foreground">
+                                {truncateText(transaction.vendor_name_original, 55)}
+                              </p>
+                            )}
+                          </div>
+                        ) : (
                           <Tooltip>
                             <TooltipTrigger asChild>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-6 w-6 p-0 opacity-60 hover:opacity-100"
-                                onClick={() => resolveIndividualVendor(transaction)}
-                                disabled={resolvingVendors.has(transaction.id) || resolvingVendors.size >= 2}
-                              >
-                                {resolvingVendors.has(transaction.id) ? (
-                                  <Loader2 className="h-3 w-3 animate-spin" />
-                                ) : (
-                                  <Sparkles className="h-3 w-3" />
+                              <div className="cursor-help">
+                                <p className={`font-medium ${resolvedVendors.has(transaction.id) ? 'text-purple-600' : ''}`}>
+                                  {truncateText(
+                                    resolvedVendors.has(transaction.id) 
+                                      ? resolvedVendors.get(transaction.id)!.name 
+                                      : transaction.vendor_name, 
+                                    55
+                                  )}
+                                </p>
+                                {transaction.vendor_name !== transaction.vendor_name_original && (
+                                  <p className="text-xs text-muted-foreground">
+                                    {truncateText(transaction.vendor_name_original, 55)}
+                                  </p>
                                 )}
-                              </Button>
+                              </div>
                             </TooltipTrigger>
-                            <TooltipContent side="top">
-                              <p>Unmask Vendor</p>
+                            <TooltipContent side="top" className="max-w-sm">
+                              <div>
+                                <p className={`font-medium ${resolvedVendors.has(transaction.id) ? 'text-purple-600' : ''}`}>
+                                  {resolvedVendors.has(transaction.id) 
+                                    ? resolvedVendors.get(transaction.id)!.name 
+                                    : transaction.vendor_name}
+                                </p>
+                                {transaction.vendor_name !== transaction.vendor_name_original && (
+                                  <p className="text-xs text-muted-foreground mt-1">
+                                    Original: {transaction.vendor_name_original}
+                                  </p>
+                                )}
+                              </div>
                             </TooltipContent>
                           </Tooltip>
                         )}
                       </div>
                     )}
                   </TableCell>
-                  <TableCell>
+                  {/* Category Resolve Button Column */}
+                  <TableCell className="w-[30px] p-1 pr-0">
+                    {shouldShowCategoryResolveButton(transaction) && (
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-6 w-6 p-0 opacity-60 hover:opacity-100 text-emerald-600"
+                            onClick={() => resolveIndividualCategory(transaction)}
+                            disabled={resolvingCategories.has(transaction.id) || resolvingCategories.size >= 2}
+                          >
+                            {resolvingCategories.has(transaction.id) ? (
+                              <Loader2 className="h-3 w-3 animate-spin" />
+                            ) : (
+                              <Sparkles className="h-3 w-3" />
+                            )}
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent side="top">
+                          <p>Auto-categorize</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    )}
+                  </TableCell>
+                  {/* Category Column */}
+                  <TableCell className="pl-1">
                     {editingId === transaction.id ? (
                       <Select 
                         value={editForm.categoryId || 'none'} 
@@ -543,12 +659,37 @@ export function TransactionList({
                         </SelectContent>
                       </Select>
                     ) : (
-                      transaction.categories ? (
+                      resolvingCategories.has(transaction.id) ? (
+                        <TextShimmer 
+                          as="p" 
+                          className="font-medium text-sm"
+                          duration={1.5}
+                          baseColor="#059669"
+                          shimmerColor="#d1fae5"
+                        >
+                          Categorizing...
+                        </TextShimmer>
+                      ) : transaction.categories ? (
                         <Tooltip>
                           <TooltipTrigger asChild>
-                            <Badge variant="secondary" className="font-normal cursor-help">
-                              {transaction.categories.name}
-                            </Badge>
+                            {(() => {
+                              const category = resolvedCategories.has(transaction.id) 
+                                ? { 
+                                    name: resolvedCategories.get(transaction.id)!.category.name,
+                                    color: transaction.categories.color 
+                                  }
+                                : transaction.categories
+                              const badgeClasses = getCategoryBadgeClasses(category)
+                              
+                              return (
+                                <Badge 
+                                  className="font-normal cursor-help border"
+                                  style={badgeClasses.style}
+                                >
+                                  {category.name}
+                                </Badge>
+                              )
+                            })()}
                           </TooltipTrigger>
                           <TooltipContent>
                             {getCategoryPath(transaction.categories.id, categories)}
@@ -630,29 +771,6 @@ export function TransactionList({
         )}
       </div>
       
-      {/* Bulk Categorize Modal */}
-      {showBulkCategorize && (
-        <BulkCategorizeModal
-          transactionIds={Array.from(selectedTransactions)}
-          onClose={() => setShowBulkCategorize(false)}
-          onSuccess={() => {
-            setSelectedTransactions(new Set())
-            setShowBulkCategorize(false)
-          }}
-        />
-      )}
-      
-      {/* Bulk Vendor Resolve Modal */}
-      {showBulkVendorResolve && (
-        <BulkVendorResolveModal
-          transactions={transactions.filter(tx => selectedTransactions.has(tx.id))}
-          open={showBulkVendorResolve}
-          onClose={() => {
-            setSelectedTransactions(new Set())
-            setShowBulkVendorResolve(false)
-          }}
-        />
-      )}
     </TooltipProvider>
   )
 }

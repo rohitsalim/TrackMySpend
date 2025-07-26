@@ -1,0 +1,525 @@
+Brand,Category,Subcategory,Transaction_Descriptor,Registered_Company_Name
+Amazon India,E-commerce,Major Platform,"AMAZON, AMAZON.IN, AMAZON PAY",Amazon Seller Services Private Limited
+Flipkart,E-commerce,Major Platform,"FLIPKART, FLIPKART.COM, FLIPKART INTERNET",Flipkart Internet Private Limited
+Meesho,E-commerce,Major Platform,"MEESHO, FASHNEAR TECH",Fashnear Technologies Private Limited
+Myntra,E-commerce,Fashion,"MYNTRA, MYNTRA DESIGNS",Myntra Designs Private Limited
+Ajio,E-commerce,Fashion,"AJIO, RELIANCE AJIO",Reliance Retail Limited
+Snapdeal,E-commerce,Major Platform,"SNAPDEAL, JASPER INFOTECH",Jasper Infotech Private Limited
+Shopclues,E-commerce,Major Platform,"SHOPCLUES, CLUES NETWORK",Clues Network Private Limited
+Pepperfry,E-commerce,Furniture,"PEPPERFRY, TRENDSUTRA",Trendsutra Platform Services Private Limited
+Urban Ladder,E-commerce,Furniture,"URBAN LADDER, URBANLADDER",Urban Ladder Home Décor Solutions Private Limited
+FirstCry,E-commerce,Baby Products,"FIRSTCRY, BRAINBEES",Brainbees Solutions Private Limited
+Nykaa,E-commerce,Beauty,"NYKAA, FSN E-COMMERCE",FSN E-Commerce Ventures Private Limited
+Purplle,E-commerce,Beauty,"PURPLLE, MANASH LIFESTYLE",Manash Lifestyle Private Limited
+MyGlamm,E-commerce,Beauty,"MYGLAMM, SANGHVI BRANDS",Sanghvi Brands Limited
+Sugar Cosmetics,E-commerce,Beauty,"SUGAR COSMETICS, VELLVETTE",Vellvette Lifestyle Private Limited
+Mamaearth,E-commerce,Beauty,"MAMAEARTH, HONASA CONSUMER",Honasa Consumer Private Limited
+The Body Shop India,E-commerce,Beauty,"BODY SHOP, QUEST RETAIL",Quest Retail Private Limited
+Forest Essentials,E-commerce,Beauty,FOREST ESSENTIALS,Forest Essentials India Private Limited
+FabIndia,E-commerce,Fashion,"FABINDIA, FAB INDIA",Fabindia Overseas Private Limited
+Biba,E-commerce,Fashion,"BIBA, BIBA APPARELS",Biba Apparels Private Limited
+W for Woman,E-commerce,Fashion,"W WOMAN, TCNS CLOTHING",TCNS Clothing Co. Limited
+Swiggy,Food Delivery,Major Platform,"SWIGGY, BUNDL TECHNOLOGIES",Bundl Technologies Private Limited
+Zomato,Food Delivery,Major Platform,ZOMATO,Zomato Limited
+Dominos India,Food Delivery,Restaurant,DOMINOS PIZZA,Jubilant FoodWorks Limited
+Pizza Hut India,Food Delivery,Restaurant,PIZZA HUT,Devyani International Limited
+McDonald's India,Food Delivery,Restaurant,MCDONALDS,Hardcastle Restaurants Private Limited
+KFC India,Food Delivery,Restaurant,KFC,Devyani International Limited
+Burger King India,Food Delivery,Restaurant,BURGER KING,Burger King India Private Limited
+Subway India,Food Delivery,Restaurant,SUBWAY,Everstone F&B Holdings
+Starbucks India,Food Delivery,Restaurant,STARBUCKS,Tata Starbucks Private Limited
+Cafe Coffee Day,Food Delivery,Restaurant,"CCD, CAFE COFFEE DAY",Coffee Day Enterprises Limited
+Uber India,Transportation,Ride-hailing,"UBER, UBER TRIP",Uber India Systems Private Limited
+Ola,Transportation,Ride-hailing,"OLA, OLACABS, ANI TECHNOLOGIES",ANI Technologies Private Limited
+Rapido,Transportation,Bike Taxi,RAPIDO,Roppen Transportation Services Private Limited
+BluSmart,Transportation,EV Ride-hailing,BLUSMART,BluSmart Mobility Private Limited
+Meru Cabs,Transportation,Taxi Service,MERU,Meru Cab Company Private Limited
+Yulu,Transportation,Bike Sharing,YULU,Yulu Bikes Private Limited
+Vogo,Transportation,Scooter Rental,VOGO,Vogo Automotive Private Limited
+Zoomcar,Transportation,Car Rental,ZOOMCAR,Zoomcar India Private Limited
+Revv,Transportation,Car Rental,REVV,Primemover Mobility Technologies Private Limited
+Drivezy,Transportation,Vehicle Rental,DRIVEZY,Justconnect Services Private Limited
+Paytm,Fintech,Digital Wallet,"PAYTM, ONE97 COMMUNICATIONS",One97 Communications Limited
+PhonePe,Fintech,Digital Wallet,"PHONEPE, FLIPKART PAYMENTS",PhonePe Private Limited
+Google Pay,Fintech,Digital Wallet,"GOOGLE PAY, GPAY",Google India Digital Services Private Limited
+Amazon Pay,Fintech,Digital Wallet,AMAZON PAY,Amazon Pay (India) Private Limited
+MobiKwik,Fintech,Digital Wallet,MOBIKWIK,One MobiKwik Systems Private Limited
+Freecharge,Fintech,Digital Wallet,FREECHARGE,Freecharge Payment Technologies Private Limited
+CRED,Fintech,Credit Management,"CRED, DREAMPLUG TECHNOLOGIES",Dreamplug Technologies Private Limited
+BharatPe,Fintech,Merchant Payments,BHARATPE,Resilient Innovations Private Limited
+Pine Labs,Fintech,Payment Solutions,PINE LABS,Pine Labs Private Limited
+Razorpay,Fintech,Payment Gateway,"RAZORPAY, RZP*",Razorpay Software Private Limited
+PayU,Fintech,Payment Gateway,"PAYU, PAYU*",PayU Payments Private Limited
+CCAvenue,Fintech,Payment Gateway,"CCAVENUE, CCAVENUE*",Infibeam Avenues Limited
+BillDesk,Fintech,Payment Gateway,"BILLDESK, BILLDESK*",IndiaIdeas.com Limited
+Paytm Payment Gateway,Fintech,Payment Gateway,"PAYTM PG, PAYTM*",One97 Communications Limited
+Cashfree,Fintech,Payment Gateway,CASHFREE,Cashfree Payments India Private Limited
+1mg,Healthcare,Online Pharmacy,"TATA 1MG, 1MG TECHNOLOGIES",1MG Technologies Private Limited
+PharmEasy,Healthcare,Online Pharmacy,"PHARMEASY, API HOLDINGS",API Holdings Limited
+Netmeds,Healthcare,Online Pharmacy,"NETMEDS, RELIANCE RETAIL",Netmeds Marketplace Limited
+Apollo Pharmacy,Healthcare,Pharmacy Chain,"APOLLO PHARMACY, APOLLO 247",Apollo Pharmacies Limited
+MedLife,Healthcare,Online Pharmacy,MEDLIFE,Medlife International Private Limited
+Practo,Healthcare,Healthcare Platform,PRACTO,Practo Technologies Private Limited
+Lybrate,Healthcare,Healthcare Platform,LYBRATE,Lybrate India Private Limited
+mfine,Healthcare,Telemedicine,MFINE,Novocura Tech Health Services Private Limited
+DocsApp,Healthcare,Telemedicine,DOCSAPP,Phasorz Technologies Private Limited
+Cure.fit,Healthcare,Fitness,"CUREFIT, CULT.FIT",Cure.fit Healthcare Private Limited
+HealthifyMe,Healthcare,Fitness & Nutrition,HEALTHIFYME,Healthifyme Wellness Private Limited
+GOQii,Healthcare,Fitness Wearables,GOQII,GOQii Technologies Private Limited
+Portea Medical,Healthcare,Home Healthcare,PORTEA,Portea Medical Private Limited
+Thyrocare,Healthcare,Diagnostics,THYROCARE,Thyrocare Technologies Limited
+Dr Lal PathLabs,Healthcare,Diagnostics,DR LAL PATHLABS,Dr Lal PathLabs Limited
+BYJU'S,EdTech,K-12 Education,"THINK LEARN, BYJUS",Think & Learn Private Limited
+Vedantu,EdTech,K-12 Education,"VEDANTU, VEDANTU INNOV",Vedantu Innovations Private Limited
+Toppr,EdTech,K-12 Education,"TOPPR, THINK LEARN",Think & Learn Private Limited (BYJU'S)
+Unacademy,EdTech,Test Prep,"UNACADEMY, SORTING HAT",Sorting Hat Technologies Private Limited
+WhiteHat Jr,EdTech,Coding for Kids,"WHITEHAT JR, BYJUS",WhiteHat Education Technology Private Limited
+Simplilearn,EdTech,Professional Courses,SIMPLILEARN,Simplilearn Solutions Private Limited
+UpGrad,EdTech,Higher Education,"UPGRAD, UPGRAD EDUCATION",UpGrad Education Private Limited
+Great Learning,EdTech,Professional Education,GREAT LEARNING,Great Lakes E-Learning Services Private Limited
+Eruditus,EdTech,Executive Education,ERUDITUS,Eruditus Learning Solutions Private Limited
+Testbook,EdTech,Test Prep,TESTBOOK,NeoStencil Private Limited
+DMart,Retail,Supermarket,"DMART*[LOCATION], AVENUE SUPMKT*[CITY]",Avenue Supermarts Limited
+Reliance Fresh,Retail,Supermarket,"RELIANCE FRESH*[LOCATION], REL SMART*[CITY]",Reliance Retail Ventures Limited
+More,Retail,Supermarket,MORE SUPER*[LOCATION],Aditya Birla Retail Limited
+Big Bazaar,Retail,Hypermarket,"BIG BAZAAR*[LOCATION], FUTURE RETAIL",Future Retail Limited
+Spencer's,Retail,Supermarket,SPENCER'S*[LOCATION],Spencer's Retail Limited
+Nature's Basket,Retail,Premium Grocery,NATURE'S BASKET*[LOCATION],Spencer's Retail Limited
+Godrej Nature's Basket,Retail,Premium Grocery,GODREJ NB*[LOCATION],Godrej Industries Limited
+Star Bazaar,Retail,Hypermarket,STAR BAZAAR*[LOCATION],Trent Hypermarket Private Limited
+HyperCITY,Retail,Hypermarket,HYPERCITY*[LOCATION],HyperCITY Retail (India) Limited
+Spar,Retail,Supermarket,SPAR*[LOCATION],Various Franchise Partners
+Metro Cash & Carry,Retail,Wholesale,METRO*[LOCATION],Metro Cash & Carry India Private Limited
+Walmart India,Retail,B2B Wholesale,WALMART*[LOCATION],Walmart India Private Limited
+Reliance Digital,Retail,Electronics,"RELIANCE DIGI*[LOCATION], REL DIGITAL",Reliance Retail Limited
+Croma,Retail,Electronics,"CROMA*[LOCATION], INFINITI RETAIL",Infiniti Retail Limited
+Vijay Sales,Retail,Electronics,VIJAY SALES*[LOCATION],Vijay Sales Private Limited
+Reliance Jio,Telecom,Mobile Operator,"JIO, RJIL, RELIANCE JIO",Reliance Jio Infocomm Limited
+Bharti Airtel,Telecom,Mobile Operator,"AIRTEL, BHARTI AIRTEL, AIRTEL DIGITAL",Bharti Airtel Limited
+Vodafone Idea (Vi),Telecom,Mobile Operator,"VI, VODAFONE IDEA, VIL",Vodafone Idea Limited
+BSNL,Telecom,Mobile Operator,"BSNL, BHARAT SANCHAR",Bharat Sanchar Nigam Limited
+MTNL,Telecom,Mobile Operator,MTNL,Mahanagar Telephone Nigam Limited
+ACT Fibernet,Telecom,Broadband,"ACT FIBERNET, ATRIA CONV",Atria Convergence Technologies Limited
+Hathway,Telecom,Broadband & Cable,HATHWAY,Hathway Cable and Datacom Limited
+Tata Sky,Telecom,DTH,"TATA SKY, TATASKY",Tata Sky Limited
+Dish TV,Telecom,DTH,DISH TV,Dish TV India Limited
+Airtel Digital TV,Telecom,DTH,AIRTEL DTH,Bharti Telemedia Limited
+HDFC Bank,Banking,Private Bank,"HDFC, HDFCBNK, HDFC BANK",HDFC Bank Limited
+ICICI Bank,Banking,Private Bank,"ICICI, ICICIBNK, ICICI BANK",ICICI Bank Limited
+Axis Bank,Banking,Private Bank,"AXIS, AXISBNK, AXIS BANK",Axis Bank Limited
+Kotak Mahindra Bank,Banking,Private Bank,"KOTAK, KOTAK BANK",Kotak Mahindra Bank Limited
+Yes Bank,Banking,Private Bank,"YES BANK, YESBNK",Yes Bank Limited
+IndusInd Bank,Banking,Private Bank,"INDUSIND, INDUSIND BANK",IndusInd Bank Limited
+IDFC First Bank,Banking,Private Bank,"IDFC FIRST, IDFCFIRSTB",IDFC First Bank Limited
+RBL Bank,Banking,Private Bank,"RBL, RBL BANK",RBL Bank Limited
+Bandhan Bank,Banking,Private Bank,"BANDHAN, BANDHAN BANK",Bandhan Bank Limited
+Federal Bank,Banking,Private Bank,"FEDERAL, FEDERAL BANK",Federal Bank Limited
+State Bank of India,Banking,Public Bank,"SBI, STATE BANK",State Bank of India
+Punjab National Bank,Banking,Public Bank,"PNB, PUNJAB NATIONAL",Punjab National Bank
+Bank of Baroda,Banking,Public Bank,"BOB, BANK BARODA",Bank of Baroda
+Canara Bank,Banking,Public Bank,"CANARA, CANARA BANK",Canara Bank
+Union Bank of India,Banking,Public Bank,"UNION BANK, UBI",Union Bank of India
+HDFC Life,Insurance,Life Insurance,"HDFC LIFE, HDFCLIFE",HDFC Life Insurance Company Limited
+ICICI Prudential Life,Insurance,Life Insurance,"ICICI PRU LIFE, ICICIPRULIFE",ICICI Prudential Life Insurance Company Limited
+SBI Life,Insurance,Life Insurance,"SBI LIFE, SBILIFE",SBI Life Insurance Company Limited
+Max Life,Insurance,Life Insurance,"MAX LIFE, MAXLIFE",Max Life Insurance Company Limited
+Bajaj Allianz Life,Insurance,Life Insurance,"BAJAJ ALLIANZ LIFE, BALIC",Bajaj Allianz Life Insurance Company Limited
+HDFC ERGO,Insurance,General Insurance,"HDFC ERGO, HDFCERGO",HDFC ERGO General Insurance Company Limited
+ICICI Lombard,Insurance,General Insurance,"ICICI LOMBARD, ICICILOMBARD",ICICI Lombard General Insurance Company Limited
+Bajaj Allianz General,Insurance,General Insurance,"BAJAJ ALLIANZ GEN, BAGIC",Bajaj Allianz General Insurance Company Limited
+New India Assurance,Insurance,General Insurance,"NEW INDIA, NIA",The New India Assurance Company Limited
+Oriental Insurance,Insurance,General Insurance,"ORIENTAL, OIC",The Oriental Insurance Company Limited
+99acres,Real Estate,Property Portal,"99ACRES SUBSCRIPTION, 99ACRES PREMIUM",Info Edge (India) Limited
+MagicBricks,Real Estate,Property Portal,"MAGICBRICKS PREMIUM, MAGICBRICKS GOLD",Times Internet Limited
+Housing.com,Real Estate,Property Portal,HOUSING.COM SUBSCRIPTION,Elara Technologies Pte. Ltd.
+Makaan.com,Real Estate,Property Portal,MAKAAN.COM PREMIUM,Elara Technologies Pte. Ltd.
+CommonFloor,Real Estate,Property Portal,COMMONFLOOR SUBSCRIPTION,Quikr India Private Limited
+NoBroker,Real Estate,Property Portal,"NOBROKER PREMIUM, NOBROKER PLAN",NoBroker Technologies Solutions Private Limited
+Square Yards,Real Estate,Property Services,SQUARE YARDS ADVISORY,Square Yards Consulting Private Limited
+PropTiger,Real Estate,Property Portal,PROPTIGER PREMIUM,Elara Technologies Pte. Ltd.
+NestAway,Real Estate,Home Rental,NESTAWAY RENT,NestAway Technologies Private Limited
+OYO,Real Estate,Budget Hotels,"OYO, OYO ROOMS",Oravel Stays Limited
+BookMyShow,Entertainment,Ticketing,"BOOKMYSHOW, BIGTREE ENTERTAINMENT",Bigtree Entertainment Private Limited
+Paytm Insider,Entertainment,Event Ticketing,"PAYTM INSIDER, ORBGEN TECH",Orbgen Technologies Private Limited (now Zomato)
+TicketNew,Entertainment,Movie Ticketing,TICKETNEW,Orbgen Technologies Private Limited
+Explara,Entertainment,Event Management,EXPLARA,Explara Pvt. Ltd.
+Townscript,Entertainment,Event Ticketing,TOWNSCRIPT,Dyulok Technologies Private Limited
+Hotstar,Entertainment,OTT Platform,"HOTSTAR, DISNEY+ HOTSTAR",Novi Digital Entertainment Private Limited
+Netflix India,Entertainment,OTT Platform,NETFLIX.COM,Netflix Entertainment Services India LLP
+Amazon Prime Video,Entertainment,OTT Platform,"AMAZON PRIME, PRIME VIDEO",Amazon Digital Services Private Limited
+Sony LIV,Entertainment,OTT Platform,SONY LIV,Culver Max Entertainment Private Limited
+Zee5,Entertainment,OTT Platform,ZEE5,Zee Entertainment Enterprises Limited
+Voot,Entertainment,OTT Platform,VOOT,Viacom18 Media Private Limited
+ALTBalaji,Entertainment,OTT Platform,ALTBALAJI,Balaji Telefilms Limited
+Eros Now,Entertainment,OTT Platform,EROS NOW,Eros Digital Private Limited
+MX Player,Entertainment,OTT Platform,MX PLAYER,MX Media & Entertainment Private Limited
+JioCinema,Entertainment,OTT Platform,JIOCINEMA,Viacom18 Media Private Limited
+Gaana,Entertainment,Music Streaming,GAANA,Times Internet Limited
+Spotify India,Entertainment,Music Streaming,SPOTIFY,Spotify India Private Limited
+JioSaavn,Entertainment,Music Streaming,"JIOSAAVN, SAAVN",Saavn Media Limited
+Wynk Music,Entertainment,Music Streaming,WYNK MUSIC,Bharti Airtel Limited
+Amazon Music,Entertainment,Music Streaming,AMAZON MUSIC,Amazon Digital Services Private Limited
+YouTube Music,Entertainment,Music Streaming,YOUTUBE MUSIC,Google India Digital Services Private Limited
+Apple Music,Entertainment,Music Streaming,APPLE.COM/BILL,Apple India Private Limited
+Hungama,Entertainment,Music & Video,HUNGAMA,Hungama Digital Media Entertainment Private Limited
+BigBasket,Grocery,Online Grocery,"BIGBASKET, INNOVATIVE RETAIL",Innovative Retail Concepts Private Limited
+Grofers (Blinkit),Grocery,Quick Commerce,"BLINKIT, GROFERS",Blink Commerce Private Limited
+Dunzo,Grocery,Quick Delivery,DUNZO,Dunzo Digital Private Limited
+JioMart,Grocery,Online Grocery,JIOMART,Reliance Retail Limited
+Amazon Fresh,Grocery,Online Grocery,AMAZON FRESH,Amazon Retail India Private Limited
+Flipkart Supermart,Grocery,Online Grocery,FLIPKART SUPERMART,Flipkart Internet Private Limited
+Nature's Basket Online,Grocery,Premium Grocery,NATURES BASKET ONLINE,Spencer's Retail Limited
+Milk Basket,Grocery,Daily Essentials,MILKBASKET,Aaidea Solutions Private Limited
+Daily Ninja,Grocery,Milk Delivery,DAILY NINJA,Aaidea Solutions Private Limited
+Country Delight,Grocery,Fresh Dairy,COUNTRY DELIGHT,Delightful Gourmet Private Limited
+LensKart,Retail,Eyewear,"LENSKART, VALYOO TECH",Valyoo Technologies Private Limited
+Titan Eye+,Retail,Eyewear,TITAN EYE PLUS,Titan Company Limited
+Coolwinks,Retail,Eyewear,COOLWINKS,Ross Optical Private Limited
+Specsmakers,Retail,Eyewear,SPECSMAKERS,Specsmakers Opticians Private Limited
+John Jacobs,Retail,Eyewear,JOHN JACOBS,Valyoo Technologies Private Limited
+Tanishq,Retail,Jewelry,"TANISHQ, TITAN",Titan Company Limited
+Kalyan Jewellers,Retail,Jewelry,KALYAN JEWELLERS,Kalyan Jewellers India Limited
+PC Jeweller,Retail,Jewelry,PC JEWELLER,PC Jeweller Limited
+Joyalukkas,Retail,Jewelry,JOYALUKKAS,Joyalukkas India Private Limited
+Malabar Gold,Retail,Jewelry,MALABAR GOLD,Malabar Gold Private Limited
+BlueStone,Retail,Online Jewelry,BLUESTONE,BlueStone Jewellery and Lifestyle Private Limited
+CaratLane,Retail,Online Jewelry,"CARATLANE, TITAN",CaratLane Trading Private Limited
+Melorra,Retail,Online Jewelry,MELORRA,Melorra International Private Limited
+Voylla,Retail,Fashion Jewelry,VOYLLA,Voylla Retail Private Limited
+Kushal's,Retail,Fashion Jewelry,KUSHALS,Kushal's Retail Private Limited
+Decathlon,Retail,Sports Goods,DECATHLON*[LOCATION],Decathlon Sports India Private Limited
+Sports365,Retail,Sports Equipment,SPORTS365,Sports365.in Sporting Goods Private Limited
+Cosco,Retail,Sports Equipment,COSCO INDIA,Cosco (India) Limited
+Yonex,Retail,Sports Equipment,YONEX SUNRISE,Sunrise Sports Private Limited
+Nike India,Retail,Sportswear,NIKE*[LOCATION],Nike India Private Limited
+Adidas India,Retail,Sportswear,ADIDAS*[LOCATION],Adidas India Marketing Private Limited
+Puma India,Retail,Sportswear,PUMA*[LOCATION],Puma Sports India Private Limited
+Reebok India,Retail,Sportswear,REEBOK*[LOCATION],Adidas India Marketing Private Limited
+Woodland,Retail,Outdoor Gear,WOODLAND*[LOCATION],Aero Club Private Limited
+Wildcraft,Retail,Outdoor Gear,WILDCRAFT,Wildcraft India Private Limited
+MakeMyTrip,Travel,Online Travel,"MAKEMYTRIP, MMT",MakeMyTrip (India) Private Limited
+Goibibo,Travel,Online Travel,GOIBIBO,Ibibo Group Private Limited
+Cleartrip,Travel,Online Travel,CLEARTRIP,Cleartrip Private Limited
+Yatra,Travel,Online Travel,YATRA,Yatra Online Private Limited
+EaseMyTrip,Travel,Online Travel,EASEMYTRIP,Easy Trip Planners Limited
+ixigo,Travel,Travel Search,IXIGO,Le Travenues Technology Limited
+Thomas Cook India,Travel,Travel Agency,THOMAS COOK,Thomas Cook (India) Limited
+SOTC,Travel,Travel Agency,SOTC,Kuoni Travel (India) Private Limited
+Cox & Kings,Travel,Travel Agency,COX AND KINGS,Cox & Kings Limited
+Kesari Tours,Travel,Travel Agency,KESARI TOURS,Kesari Tours Private Limited
+redBus,Travel,Bus Booking,REDBUS,iBibo Group Private Limited
+AbhiBus,Travel,Bus Booking,ABHIBUS,Teamwork Arts Private Limited
+Ola Cabs Outstation,Travel,Intercity Travel,OLA OUTSTATION,ANI Technologies Private Limited
+Savaari,Travel,Car Rental,SAVAARI,Lithium Technologies Private Limited
+Uber Intercity,Travel,Intercity Travel,UBER INTERCITY,Uber India Systems Private Limited
+IRCTC,Travel,Train Booking,"IRCTC, INDIAN RAILWAY",Indian Railway Catering and Tourism Corporation Limited
+RailYatri,Travel,Train Travel,RAILYATRI,Stelling Technologies Private Limited
+ConfirmTkt,Travel,Train Booking,CONFIRMTKT,Confirmtkt Internet Private Limited
+Trainman,Travel,Train Booking,TRAINMAN,Meu Solutions Private Limited
+RailRestro,Travel,Food in Train,RAILRESTRO,Railrestro.com
+IndiGo,Travel,Airlines,INDIGO,InterGlobe Aviation Limited
+Air India,Travel,Airlines,AIR INDIA,Air India Limited
+SpiceJet,Travel,Airlines,SPICEJET,SpiceJet Limited
+Vistara,Travel,Airlines,VISTARA,TATA SIA Airlines Limited
+GoAir (Go First),Travel,Airlines,"GOAIR, GO FIRST",Wadia Aviation Private Limited
+AirAsia India,Travel,Airlines,AIRASIA,AirAsia (India) Limited
+Alliance Air,Travel,Airlines,ALLIANCE AIR,Airline Allied Services Limited
+TruJet,Travel,Airlines,TRUJET,Turbo Megha Airways Private Limited
+Star Air,Travel,Airlines,STAR AIR,Star Air Private Limited
+Urban Company,Home Services,Multi-Service,"URBANCOMPANY, URBANCLAP",UrbanClap Technologies India Private Limited
+Housejoy,Home Services,Multi-Service,HOUSEJOY,Housejoy Services Private Limited
+Zimmber,Home Services,Multi-Service,ZIMMBER,Zimmber Internet Private Limited
+Timesaverz,Home Services,Multi-Service,TIMESAVERZ,Timesaverz Solutions Private Limited
+Helpr,Home Services,Multi-Service,HELPR,Helpr Technologies Private Limited
+Justdial,Home Services,Local Search,JUSTDIAL,Just Dial Limited
+Sulekha,Home Services,Local Services,SULEKHA,Sulekha New Media Private Limited
+UrbanPro,Home Services,Tutoring Platform,URBANPRO,UrbanPro.com India Private Limited
+NearBuy,Home Services,Local Deals,NEARBUY,Nearbuy Commerce Private Limited
+Quikr,Home Services,Classifieds,QUIKR,Quikr India Private Limited
+PolicyBazaar,Insurance,Insurance Aggregator,"POLICYBAZAAR, PB FINTECH",PB Fintech Limited
+RenewBuy,Insurance,Insurance Broker,RENEWBUY,D2C Insurance Broking Private Limited
+Turtlemint,Insurance,Insurance Platform,TURTLEMINT,Invictus Insurance Broking Services Private Limited
+InsuranceDekho,Insurance,Insurance Aggregator,INSURANCEDEKHO,Girnar Insurance Brokers Private Limited
+Coverfox,Insurance,Insurance Broker,COVERFOX,Glitterbay Technologies Private Limited
+Acko,Insurance,Digital Insurance,ACKO,Acko General Insurance Limited
+Digit Insurance,Insurance,Digital Insurance,DIGIT INSURANCE,Go Digit General Insurance Limited
+Edelweiss,Financial Services,Insurance & Finance,EDELWEISS,Edelweiss Financial Services Limited
+Religare,Financial Services,Financial Services,RELIGARE,Religare Enterprises Limited
+Bajaj Finserv,Financial Services,NBFC,"BAJAJ FINSERV, BAJAJFIN",Bajaj Finance Limited
+Muthoot Finance,Financial Services,Gold Loan,MUTHOOT FINANCE,Muthoot Finance Limited
+Manappuram Finance,Financial Services,Gold Loan,MANAPPURAM,Manappuram Finance Limited
+IIFL Finance,Financial Services,NBFC,IIFL FINANCE,IIFL Finance Limited
+Shriram Finance,Financial Services,Vehicle Finance,SHRIRAM FINANCE,Shriram Finance Limited
+Mahindra Finance,Financial Services,Vehicle Finance,MAHINDRA FINANCE,Mahindra & Mahindra Financial Services Limited
+Hudle,Sports,Sports Booking,HSQUARE SPORTS PRIVA,HSquare Sports Private Limited
+Playo,Sports,Sports Venues,PLAYO,TechPlayo Private Limited
+GameTheory,Sports,Sports Booking,GAMETHEORY,GameTheory Sports Private Limited
+Sportzify,Sports,Sports Platform,SPORTZIFY,Sportzify Tech Private Limited
+PlayO,Sports,Sports Equipment,PLAYO SPORTS,PlayO Sports Private Limited
+KhelNow,Sports,Sports Community,KHELNOW,KhelNow Sporting Services Private Limited
+Sportskeeda,Sports,Sports Media,SPORTSKEEDA,Absolute Sports Private Limited
+SportsFlashes,Sports,Sports Updates,SPORTSFLASHES,Indusfox Systems Private Limited
+Dream11,Gaming,Fantasy Sports,DREAM11,Sporta Technologies Private Limited
+My11Circle,Gaming,Fantasy Sports,MY11CIRCLE,Play Games24x7 Private Limited
+MPL,Gaming,Mobile Gaming,"MPL, MOBILE PREMIER",Mobile Premier League Private Limited
+RummyCircle,Gaming,Card Games,RUMMYCIRCLE,Play Games24x7 Private Limited
+PokerBaazi,Gaming,Poker,POKERBAAZI,Baazi Networks Private Limited
+Adda52,Gaming,Poker,ADDA52,Gaussan Networks Private Limited
+Teen Patti Gold,Gaming,Card Games,TEEN PATTI GOLD,Moonfrog Labs Private Limited
+Ludo King,Gaming,Board Games,LUDO KING,Gametion Technologies Private Limited
+Ace2Three,Gaming,Rummy,ACE2THREE,Head Digital Works Private Limited
+Junglee Rummy,Gaming,Rummy,JUNGLEE RUMMY,Junglee Games India Private Limited
+Zerodha,Stock Trading,Discount Broker,ZERODHA,Zerodha Broking Limited
+Upstox,Stock Trading,Discount Broker,"UPSTOX, RKSV",RKSV Securities India Private Limited
+Groww,Stock Trading,Investment Platform,GROWW,Nextbillion Technology Private Limited
+Angel One,Stock Trading,Broker,"ANGEL ONE, ANGEL BROKING",Angel One Limited
+5paisa,Stock Trading,Discount Broker,5PAISA,5paisa Capital Limited
+ICICI Direct,Stock Trading,Broker,ICICI DIRECT,ICICI Securities Limited
+HDFC Securities,Stock Trading,Broker,HDFC SECURITIES,HDFC Securities Limited
+Kotak Securities,Stock Trading,Broker,KOTAK SECURITIES,Kotak Securities Limited
+Motilal Oswal,Stock Trading,Broker,MOTILAL OSWAL,Motilal Oswal Financial Services Limited
+Sharekhan,Stock Trading,Broker,SHAREKHAN,Sharekhan Limited
+Paytm Money,Investment,Investment Platform,PAYTM MONEY,Paytm Money Limited
+ET Money,Investment,Investment App,ET MONEY,Times Internet Limited
+Kuvera,Investment,Investment Platform,KUVERA,Arevuk Advisory Services Private Limited
+INDmoney,Investment,Finance App,INDMONEY,IND Money Private Limited
+Niyo,Banking,Neo Bank,NIYO,Niyo Solutions Inc
+Fi Money,Banking,Neo Bank,"FI MONEY, EPIFI",Social Worth Technologies Private Limited
+Jupiter,Banking,Neo Bank,JUPITER,Amica Financial Technologies Private Limited
+Open,Banking,Neo Bank,OPEN,Finin Labs Inc
+RazorpayX,Banking,Neo Bank,RAZORPAYX,Razorpay Software Private Limited
+NiYO Global,Banking,Travel Card,NIYO GLOBAL,Niyo Solutions Inc
+Slice,Fintech,Credit Card,SLICE,GaragePreneurs Internet Private Limited
+OneCard,Fintech,Credit Card,ONECARD,FPL Technologies Private Limited
+Uni,Fintech,Pay Later Card,UNI CARD,Uniorbit Technologies Private Limited
+LazyPay,Fintech,Pay Later,LAZYPAY,PayU Payments Private Limited
+Simpl,Fintech,Pay Later,SIMPL,Get Simpl Technologies Private Limited
+ZestMoney,Fintech,EMI Platform,ZESTMONEY,Camden Town Technologies Private Limited
+Capital Float,Fintech,Business Loans,CAPITAL FLOAT,Capital Float Services Private Limited
+Lendingkart,Fintech,Business Loans,LENDINGKART,Lendingkart Technologies Private Limited
+KreditBee,Fintech,Personal Loans,KREDITBEE,Finnovation Tech Solutions Private Limited
+MoneyTap,Fintech,Credit Line,MONEYTAP,MWYN Tech Private Limited
+EarlySalary,Fintech,Salary Advance,EARLYSALARY,Olyv India Private Limited
+CASHe,Fintech,Personal Loans,CASHE,Bhanix Finance and Investment Limited
+Home Credit,Fintech,Consumer Finance,HOME CREDIT,Home Credit India Finance Private Limited
+Bajaj EMI,Fintech,EMI Network,BAJAJ EMI,Bajaj Finance Limited
+TVS Credit,Fintech,Two-Wheeler Loans,TVS CREDIT,TVS Credit Services Limited
+Tata Capital,Fintech,Financial Services,TATA CAPITAL,Tata Capital Financial Services Limited
+Aditya Birla Capital,Financial Services,Financial Services,ADITYA BIRLA CAPITAL,Aditya Birla Capital Limited
+L&T Finance,Financial Services,NBFC,L&T FINANCE,L&T Finance Limited
+Piramal Finance,Financial Services,Financial Services,PIRAMAL FINANCE,Piramal Capital & Housing Finance Limited
+Fullerton India,Financial Services,NBFC,FULLERTON INDIA,Fullerton India Credit Company Limited
+InCred,Fintech,Digital Lending,INCRED,InCred Financial Services Limited
+Faircent,Fintech,P2P Lending,FAIRCENT,Fairassets Technologies India Private Limited
+i2iFunding,Fintech,P2P Lending,I2IFUNDING,A & A Dukaan Financial Services Private Limited
+LenDenClub,Fintech,P2P Lending,LENDENCLUB,Innofin Solutions Private Limited
+Oxyzo,Fintech,B2B Lending,OXYZO,Oxyzo Financial Services Private Limited
+Aye Finance,Fintech,MSME Loans,AYE FINANCE,Aye Finance Private Limited
+NeoGrowth,Fintech,Business Loans,NEOGROWTH,NeoGrowth Credit Private Limited
+Indifi,Fintech,MSME Lending,INDIFI,Indifi Technologies Private Limited
+Flexiloans,Fintech,Business Loans,FLEXILOANS,FlexiLoans Technologies Private Limited
+Rupeek,Fintech,Gold Loans,RUPEEK,Rupeek Fintech Private Limited
+OLX,Classifieds,General Classifieds,OLX,OLX India Private Limited
+Cars24,Auto,Used Cars,CARS24,Cars24 Services Private Limited
+CarDekho,Auto,Auto Portal,CARDEKHO,Girnar Software Private Limited
+CarWale,Auto,Auto Portal,CARWALE,Automotive Exchange Private Limited
+Spinny,Auto,Used Cars,SPINNY,Spinny Automax Private Limited
+Droom,Auto,Auto Marketplace,DROOM,Droom Technology Private Limited
+AutoPortal,Auto,Auto Portal,AUTOPORTAL,Autoportal India Private Limited
+Vroom,Auto,Used Cars,VROOM,Vroom Auto Private Limited
+CarTrade,Auto,Auto Platform,CARTRADE,CarTrade Tech Limited
+Mahindra First Choice,Auto,Used Cars,MAHINDRA FIRST CHOICE,Mahindra First Choice Wheels Limited
+Maruti True Value,Auto,Used Cars,MARUTI TRUE VALUE,Maruti Suzuki India Limited
+Tata Assured,Auto,Used Cars,TATA ASSURED,Tata Motors Limited
+Hero Sure,Auto,Two Wheelers,HERO SURE,Hero MotoCorp Limited
+TVS Used Bikes,Auto,Two Wheelers,TVS USED BIKES,TVS Motor Company Limited
+Royal Enfield Vintage,Auto,Motorcycles,RE VINTAGE,Eicher Motors Limited
+MedPlus,Healthcare,Pharmacy Chain,MEDPLUS,MedPlus Health Services Private Limited
+Wellness Forever,Healthcare,Pharmacy Chain,WELLNESS FOREVER,Wellness Forever Medicare Limited
+Frank Ross,Healthcare,Pharmacy Chain,FRANK ROSS,Frank Ross Pharmacy Limited
+Guardian Pharmacy,Healthcare,Pharmacy Chain,GUARDIAN PHARMACY,Guardian Lifecare Private Limited
+98.4 Pharmacy,Healthcare,Pharmacy Chain,98.4 PHARMACY,Global Healthline Private Limited
+Truemeds,Healthcare,Online Pharmacy,TRUEMEDS,Truecare Healthtech Private Limited
+Myra,Healthcare,Online Pharmacy,MYRA MEDICINES,Myra Medicines Private Limited
+SaveOnMedicals,Healthcare,Online Pharmacy,SAVEONMEDICALS,Savorite Solutions Private Limited
+StayHappi,Healthcare,Pharmacy Chain,STAYHAPPI,Aristo Pharmaceuticals Private Limited
+GenericWale,Healthcare,Generic Medicines,GENERICWALE,GenericWale Private Limited
+Tata CLiQ,E-commerce,Fashion & Lifestyle,"TATA CLIQ, TATACLIQ",Tata Unistore Limited
+Tata CLiQ Luxury,E-commerce,Luxury Fashion,TATA CLIQ LUXURY,Tata Unistore Limited
+Luxepolis,E-commerce,Luxury Fashion,LUXEPOLIS,Purple Style Labs Private Limited
+Elitify,E-commerce,Luxury Goods,ELITIFY,Elitify E-Retail Private Limited
+Darveys,E-commerce,Luxury Fashion,DARVEYS,Darveys.com Retail Private Limited
+Aza Fashions,E-commerce,Designer Fashion,AZA FASHIONS,Aza Fashions Private Limited
+Pernia's Pop-Up Shop,E-commerce,Designer Fashion,PERNIAS POP UP,Purple Style Labs Private Limited
+Ogaan,E-commerce,Designer Fashion,OGAAN,Ogaan Trading Private Limited
+Caratlane,E-commerce,Jewelry,"CARATLANE, TITAN",CaratLane Trading Private Limited
+Velvetcase,E-commerce,Jewelry,VELVETCASE,Velvetcase Private Limited
+Myntra Jabong,E-commerce,Fashion,"JABONG, MYNTRA",Xerion Retail Private Limited
+Koovs,E-commerce,Fashion,KOOVS,Koovs Marketing Consulting Private Limited
+Voonik,E-commerce,Fashion,VOONIK,Voonik Technologies Private Limited
+LimeRoad,E-commerce,Fashion,LIMEROAD,LimeRoad.com
+Zilingo,E-commerce,Fashion,ZILINGO,Zilingo Private Limited
+Craftsvilla,E-commerce,Ethnic Wear,CRAFTSVILLA,Craftsvilla Handicrafts Private Limited
+Jaypore,E-commerce,Handicrafts,JAYPORE,Jaypore E-Commerce Private Limited
+iTokri,E-commerce,Handicrafts,ITOKRI,Tokri Crafts Private Limited
+The India Craft House,E-commerce,Handicrafts,INDIA CRAFT HOUSE,Modern Handicrafts Private Limited
+GoCoop,E-commerce,Handloom,GOCOOP,GoCoop Online Marketplaces India Private Limited
+Paytm Mall,E-commerce,General Shopping,PAYTM MALL,Paytm E-Commerce Private Limited
+ShopX,E-commerce,B2B Commerce,SHOPX,Snapbizz Cloudtech Private Limited
+Udaan,E-commerce,B2B Marketplace,UDAAN,Hiveloop Technology Private Limited
+IndiaMART,E-commerce,B2B Portal,INDIAMART,IndiaMART InterMESH Limited
+TradeIndia,E-commerce,B2B Portal,TRADEINDIA,Infocom Network Limited
+ExportersIndia,E-commerce,B2B Portal,EXPORTERSINDIA,Weblink.In Private Limited
+Industrybuying,E-commerce,Industrial Supplies,INDUSTRYBUYING,Industrybuying.com
+Moglix,E-commerce,Industrial B2B,MOGLIX,Mogli Labs Private Limited
+Bizongo,E-commerce,B2B Packaging,BIZONGO,Bizongo Private Limited
+Power2SME,E-commerce,B2B Raw Materials,POWER2SME,Power2SME Private Limited
+Wynk Studio,Fashion,Custom Fashion,WYNK STUDIO,Wynk Studio Private Limited
+The Souled Store,Fashion,Pop Culture Apparel,SOULED STORE,The Souled Store Private Limited
+Bewakoof,Fashion,Trendy Apparel,BEWAKOOF,Bewakoof Brands Private Limited
+Campus Sutra,Fashion,Youth Fashion,CAMPUS SUTRA,Campus Sutra Retail Private Limited
+Styched,Fashion,Men's Fashion,STYCHED,Styched Fashion Private Limited
+The Bear House,Fashion,Men's Grooming,BEAR HOUSE,Bear House Private Limited
+Beardo,Fashion,Men's Grooming,BEARDO,Marico Limited
+Ustraa,Fashion,Men's Grooming,USTRAA,Happily Unmarried Marketing Private Limited
+Bombay Shaving Company,Fashion,Men's Grooming,BOMBAY SHAVING CO,Bombay Shaving Company
+Man Company,Fashion,Men's Grooming,MAN COMPANY,Helios Lifestyle Private Limited
+LetsShave,Fashion,Shaving Products,LETSSHAVE,LetsShave Private Limited
+Hajamat,Fashion,Men's Grooming,HAJAMAT,Hajamat Private Limited
+ManMatters,Fashion,Men's Wellness,MANMATTERS,Mosaic Wellness Private Limited
+Bold Care,Fashion,Men's Wellness,BOLD CARE,Rahul Healthcare Private Limited
+Misters,Fashion,Men's Wellness,MISTERS,Misters.in
+WOW Skin Science,Beauty,Skin & Hair Care,WOW SKIN SCIENCE,Body Cupid Private Limited
+mCaffeine,Beauty,Caffeine Beauty,MCAFFEINE,PharmaGear HealthTech Private Limited
+Plum,Beauty,Vegan Beauty,PLUM GOODNESS,Plum Goodness Private Limited
+Juicy Chemistry,Beauty,Organic Beauty,JUICY CHEMISTRY,Shilpa Rathi Ventures
+Kama Ayurveda,Beauty,Ayurvedic Beauty,KAMA AYURVEDA,Kama Ayurveda Private Limited
+Just Herbs,Beauty,Ayurvedic Beauty,JUST HERBS,Just Herbs Private Limited
+Khadi Natural,Beauty,Natural Products,KHADI NATURAL,Khadi Natural Healthcare
+Biotique,Beauty,Ayurvedic Beauty,BIOTIQUE,Bio Veda Action Research Company
+Lotus Herbals,Beauty,Herbal Beauty,LOTUS HERBALS,Lotus Herbals Private Limited
+VLCC,Beauty,Beauty & Wellness,VLCC,VLCC Personal Care Limited
+Kaya,Beauty,Skin Clinics,KAYA CLINIC,Kaya Limited
+Richfeel,Beauty,Hair & Skin,RICHFEEL,Richfeel Health & Beauty Private Limited
+Dr Batra's,Healthcare,Homeopathy,DR BATRAS,Dr Batra's Healthcare
+Oliva Skin & Hair Clinic,Beauty,Skin Clinics,OLIVA CLINIC,Oliva Skin & Hair Clinic Private Limited
+Kosmoderma,Beauty,Skin Clinics,KOSMODERMA,Kosmoderma Clinics Private Limited
+UrbanKisaan,Grocery,Urban Farming,URBANKISAAN,UrbanKisaan Private Limited
+Ninjacart,Grocery,B2B Produce,NINJACART,63Ideas Infolabs Private Limited
+WayCool,Grocery,Food Supply Chain,WAYCOOL,WayCool Foods & Products Private Limited
+FarmersFZ,Grocery,Farm Produce,FARMERSFZ,Farmers Fresh Zone Private Limited
+Otipy,Grocery,Fresh Produce,OTIPY,Crofarm Agriproducts Private Limited
+Kisan Network,Grocery,Agri Marketplace,KISAN NETWORK,Kisan Network Private Limited
+DeHaat,Agriculture,Agri Services,DEHAAT,DeHaat Private Limited
+AgroStar,Agriculture,Agri Solutions,AGROSTAR,Ulink AgriTech Private Limited
+Gramophone,Agriculture,Agri Advisory,GRAMOPHONE,Gramophone Agritech Private Limited
+Arya.ag,Agriculture,Agri Storage,ARYA AG,Arya Collateral Warehousing Services Private Limited
+Samunnati,Agriculture,Agri Finance,SAMUNNATI,Samunnati Financial Intermediation & Services Private Limited
+Jai Kisan,Agriculture,Rural Fintech,JAI KISAN,Greentree Labs Private Limited
+FarMart,Agriculture,Rural Commerce,FARMART,FarMart Services Private Limited
+BharatAgri,Agriculture,Agri Advisory,BHARATAGRI,BharatAgri Private Limited
+CropIn,Agriculture,Agri Tech,CROPIN,CropIn Technology Solutions Private Limited
+Intello Labs,Agriculture,Agri AI,INTELLO LABS,Intello Labs Private Limited
+Fasal,Agriculture,Precision Farming,FASAL,Wolkus Technology Solutions Private Limited
+SatSure,Agriculture,Satellite Analytics,SATSURE,SatSure Analytics India Private Limited
+Pixxel,Agriculture,Earth Imaging,PIXXEL,Pixxel Space India Private Limited
+Stellapps,Dairy Tech,Dairy Management,STELLAPPS,Stellapps Technologies Private Limited
+Prompt Dairy Tech,Dairy Tech,Dairy Solutions,PROMPT DAIRY,Prompt Equipments Private Limited
+MoooFarm,Dairy Tech,Dairy Platform,MOOOFARM,MOOOFARM Innovations Private Limited
+Hatsun Agro,Dairy,Dairy Products,HATSUN,Hatsun Agro Product Limited
+Heritage Foods,Dairy,Dairy Products,HERITAGE,Heritage Foods Limited
+Parag Milk Foods,Dairy,Dairy Products,PARAG MILK,Parag Milk Foods Limited
+Kwality,Dairy,Dairy Products,KWALITY,Kwality Limited
+Prabhat Dairy,Dairy,Dairy Products,PRABHAT,Prabhat Dairy Limited
+Dodla Dairy,Dairy,Dairy Products,DODLA,Dodla Dairy Limited
+Milk Mantra,Dairy,Dairy Products,MILK MANTRA,Milk Mantra Dairy Private Limited
+Akshayakalpa,Dairy,Organic Dairy,AKSHAYAKALPA,Akshayakalpa Farms & Foods Private Limited
+Pride of Cows,Dairy,Premium Dairy,PRIDE OF COWS,Parag Milk Foods Limited
+Binsar Farms,Dairy,Organic Dairy,BINSAR FARMS,Mahesh Farms Private Limited
+Vrindavan Farms,Dairy,Farm Fresh,VRINDAVAN FARMS,Vrindavan Farms Private Limited
+Puresh Daily,Dairy,Fresh Dairy,PURESH DAILY,Puresh Daily Private Limited
+Whyte Farms,Dairy,Premium Eggs,WHYTE FARMS,Venkateshwara Hatcheries Private Limited
+Keggfarms,Poultry,Eggs & Chicken,KEGGFARMS,Keggfarms Private Limited
+Suguna Foods,Poultry,Chicken Products,SUGUNA,Suguna Foods Private Limited
+Venkys,Poultry,Chicken Products,VENKYS,Venkateshwara Hatcheries Private Limited
+Godrej Agrovet,Agriculture,Agri Business,GODREJ AGROVET,Godrej Agrovet Limited
+ITC e-Choupal,Agriculture,Rural Network,E-CHOUPAL,ITC Limited
+Rallis India,Agriculture,Crop Protection,RALLIS,Rallis India Limited
+Coromandel,Agriculture,Fertilizers,COROMANDEL,Coromandel International Limited
+National Fertilizers,Agriculture,Fertilizers,NFL,National Fertilizers Limited
+IFFCO,Agriculture,Fertilizers,IFFCO,Indian Farmers Fertiliser Cooperative Limited
+KRIBHCO,Agriculture,Fertilizers,KRIBHCO,Krishak Bharati Cooperative Limited
+Zuari Agro,Agriculture,Fertilizers,ZUARI,Zuari Agro Chemicals Limited
+Chambal Fertilizers,Agriculture,Fertilizers,CFCL,Chambal Fertilisers & Chemicals Limited
+GSFC,Agriculture,Fertilizers,GSFC,Gujarat State Fertilizers & Chemicals Limited
+Mahadhan,Agriculture,Crop Nutrition,MAHADHAN,Mahadhan AgriTech Limited
+Jivamrit,Agriculture,Organic Inputs,JIVAMRIT,Jivamrit Organic Private Limited
+Multiplex,Agriculture,Agri Inputs,MULTIPLEX,Karnataka Agro Chemicals
+Tropical Agrosystem,Agriculture,Organic Farming,TROPICAL AGRO,Tropical Agrosystem India Private Limited
+Anand Agro Care,Agriculture,Agri Products,ANAND AGRO,Anand Agro Care
+BigHaat,Agriculture,Agri Marketplace,BIGHAAT,BigHaat Agro Private Limited
+BharatRohan,Agriculture,Drone Services,BHARATROHAN,BharatRohan Airborne Innovations Private Limited
+General Aeronautics,Agriculture,Agri Drones,GENERAL AERONAUTICS,General Aeronautics Private Limited
+Omnipresent Robot,Agriculture,Agri Robotics,OMNIPRESENT,Omnipresent Robot Technologies Private Limited
+TartanSense,Agriculture,Agri Robotics,TARTANSENSE,TartanSense Automation Private Limited
+Ergos,Agriculture,Grain Commerce,ERGOS,Ergos Business Solutions Private Limited
+OrgaNext,Agriculture,Supply Chain,ORGANEXT,OrgaNext Foods Private Limited
+FreshR,Food Tech,Fresh Produce,FRESHR,Freshr Private Limited
+Clover Ventures,Food Tech,Cloud Kitchen,CLOVER VENTURES,Clover Quick Service Restaurants Private Limited
+Curefoods,Food Tech,Cloud Kitchen,CUREFOODS,Curefoods Private Limited
+Rebel Foods,Food Tech,Cloud Kitchen,REBEL FOODS,Rebel Foods Private Limited
+Box8,Food Tech,Food Delivery,BOX8,Poncho Hospitality Private Limited
+FreshMenu,Food Tech,Food Delivery,FRESHMENU,Foodvista India Private Limited
+InnerChef,Food Tech,Food Delivery,INNERCHEF,Innovative Foods Private Limited
+Biryani By Kilo,Food Tech,Food Delivery,BIRYANI BY KILO,Biryani By Kilo Private Limited
+Paradise Biryani,Food,Restaurant Chain,PARADISE,Paradise Food Court Private Limited
+Barbeque Nation,Food,Restaurant Chain,BARBEQUE NATION,Barbeque Nation Hospitality Limited
+Mainland China,Food,Restaurant Chain,MAINLAND CHINA,Speciality Restaurants Limited
+Oh! Calcutta,Food,Restaurant Chain,OH CALCUTTA,Speciality Restaurants Limited
+Farzi Cafe,Food,Restaurant Chain,FARZI CAFE,Massive Restaurants Private Limited
+SodaBottleOpenerWala,Food,Restaurant Chain,SODABOTTLEOPENERWALA,Impresario Entertainment & Hospitality Private Limited
+Smoke House Deli,Food,Restaurant Chain,SMOKE HOUSE DELI,Impresario Entertainment & Hospitality Private Limited
+Social,Food,Restaurant Chain,SOCIAL,Impresario Entertainment & Hospitality Private Limited
+Toit,Food,Brewpub,TOIT,Toit Brewpub Private Limited
+Arbor Brewing Company,Food,Brewpub,ARBOR BREWING,Arbor Brewing Company India Private Limited
+Doolally,Food,Brewpub,DOOLALLY,Doolally Crafts Private Limited
+The Beer Cafe,Food,Bar Chain,BEER CAFE,Beer Cafe Hospitality Private Limited
+Ministry of Beer,Food,Bar Chain,MINISTRY OF BEER,Ministry of Beer Private Limited
+Lord of the Drinks,Food,Bar Chain,LORD OF DRINKS,Lord of the Drinks Private Limited
+Raasta,Food,Bar & Restaurant,RAASTA,Raasta Hospitality Private Limited
+Monkey Bar,Food,Gastropub,MONKEY BAR,Olive Bar & Kitchen Private Limited
+The Fatty Bao,Food,Restaurant Chain,FATTY BAO,Olive Bar & Kitchen Private Limited
+Toast & Tonic,Food,Restaurant Chain,TOAST AND TONIC,Olive Bar & Kitchen Private Limited
+Sly Granny,Food,Bar Chain,SLY GRANNY,Azure Hospitality Private Limited
+Foxtrot,Food,Bar Chain,FOXTROT,Azure Hospitality Private Limited
+OpenHouse,Food,Cafe Chain,OPENHOUSE,Azure Hospitality Private Limited
+Molecule Air Bar,Food,Molecular Gastronomy,MOLECULE,Molecule Hospitality Private Limited
+Indian Accent,Food,Fine Dining,INDIAN ACCENT,Old World Hospitality Private Limited
+Chor Bizarre,Food,Restaurant,CHOR BIZARRE,Old World Hospitality Private Limited
+Dum Pukht,Food,Fine Dining,DUM PUKHT,ITC Limited
+Bukhara,Food,Fine Dining,BUKHARA,ITC Limited
+Dakshin,Food,Regional Cuisine,DAKSHIN,ITC Limited
+Peshawri,Food,North Indian,PESHAWRI,ITC Limited
+Trishna,Food,Seafood,TRISHNA,Trishna Hospitality Private Limited
+Wasabi by Morimoto,Food,Japanese,WASABI MORIMOTO,The Taj Hotels
+Varq,Food,Modern Indian,VARQ,The Taj Hotels
+Masala Library,Food,Modern Indian,MASALA LIBRARY,Massive Restaurants Private Limited
+Papaya,Food,Asian Cuisine,PAPAYA,Massive Restaurants Private Limited
+Pa Pa Ya,Food,Modern Asian,PA PA YA,Massive Restaurants Private Limited
+Dishoom,Food,Bombay Cafe,DISHOOM,Dishoom Private Limited
+Bombay Canteen,Food,Regional Indian,BOMBAY CANTEEN,Hunger Inc Hospitality Private Limited
+O Pedro,Food,Goan Cuisine,O PEDRO,Hunger Inc Hospitality Private Limited
+Veranda,Food,Multi-Cuisine,VERANDA,Hunger Inc Hospitality Private Limited
+Toast on the Coast,Food,Coastal Food,TOAST ON COAST,Toast Hospitality Private Limited
+Sanchez,Food,Mexican,SANCHEZ,Sanchez Hospitality Private Limited
+Tres,Food,European,TRES,Tres Hospitality Private Limited
+Caterspoint,Food Services,Catering,CATERSPOINT,Caterspoint Private Limited
+Zomato Kitchen,Food Services,Catering,ZOMATO KITCHEN,Zomato Limited
+FoodyBuddy,Food Services,Catering,FOODYBUDDY,FoodyBuddy Private Limited
+Caterwings,Food Services,Catering,CATERWINGS,Caterwings Private Limited
+CaterNinja,Food Services,Catering,CATERNINJA,CaterNinja Private Limited
+The Creative Kitchen,Food Services,Catering,CREATIVE KITCHEN,The Creative Kitchen Private Limited
+Cookifi,Food Services,Catering,COOKIFI,Cookifi Internet Private Limited
+HungerBox,Food Services,Corporate Catering,HUNGERBOX,Hungerbox Private Limited
+SmartQ,Food Services,Food Court Tech,SMARTQ,Alyve Health Private Limited
+Thrive,Food Services,Corporate Catering,THRIVE,Thrive Foods Private Limited

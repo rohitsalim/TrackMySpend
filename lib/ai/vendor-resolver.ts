@@ -2,6 +2,7 @@ import { google } from '@ai-sdk/google'
 import { generateText } from 'ai'
 import { createClient } from '@/lib/supabase/server'
 import { VendorMappingCache } from '@/lib/services/vendor-mapping-cache'
+import { getVendorDatabase } from '@/lib/services/vendor-database'
 import type { 
   VendorResolutionRequest,
   VendorResolutionResponse,
@@ -24,6 +25,7 @@ import type {
 export class VendorResolver {
   private supabase: Awaited<ReturnType<typeof createClient>>
   private cache: VendorMappingCache
+  private vendorDatabase = getVendorDatabase()
 
   constructor(supabaseClient: Awaited<ReturnType<typeof createClient>>) {
     this.supabase = supabaseClient
@@ -50,10 +52,33 @@ export class VendorResolver {
         }
       }
 
-      // Step 2: Use Gemini 2.5 Flash with grounding for AI resolution
+      // Step 2: Check local CSV database for known Indian brands
+      const csvMatch = this.vendorDatabase.findVendor(request.original_text)
+      if (csvMatch) {
+        // Cache the CSV match for future use
+        await this.cache.cacheMapping(
+          request.original_text,
+          csvMatch.brand,
+          csvMatch.confidence,
+          'llm' // Mark as 'llm' source since it's system-generated
+        )
+        
+        return {
+          success: true,
+          data: {
+            original_text: request.original_text,
+            resolved_name: csvMatch.brand,
+            confidence: csvMatch.confidence,
+            source: 'llm' as const,
+            reasoning: `Matched to known Indian brand database (${csvMatch.category})`
+          }
+        }
+      }
+
+      // Step 3: Use Gemini 2.5 Flash with grounding for AI resolution
       const aiResult = await this.resolveWithGeminiGrounding(request)
       if (aiResult.success && aiResult.data) {
-        // Step 3: Cache the result using intelligent cache
+        // Step 4: Cache the result using intelligent cache
         await this.cache.cacheMapping(
           request.original_text,
           aiResult.data.resolved_name,
@@ -64,7 +89,7 @@ export class VendorResolver {
         return aiResult
       }
 
-      // Step 4: Fallback - return original text with low confidence
+      // Step 5: Fallback - return original text with low confidence
       return {
         success: true,
         data: {
@@ -112,10 +137,7 @@ export class VendorResolver {
       const response = await generateText({
         model: google('gemini-2.5-pro', {
           useSearchGrounding: true,
-          dynamicRetrievalConfig: {
-            mode: 'MODE_DYNAMIC',
-            dynamicThreshold: 0.7
-          }
+          
         }),
         providerOptions: {
           google: {
@@ -154,15 +176,24 @@ export class VendorResolver {
   private buildVendorResolutionPrompt(request: VendorResolutionRequest): string {
     const { original_text, context } = request
     
+    // Get relevant vendors from CSV database for context
+    const relevantVendors = this.vendorDatabase.getRelevantVendorsForContext(original_text, 10)
+    
     let prompt = `You are a financial transaction analyst specializing in identifying Indian businesses and merchants from transaction descriptions. Your goal is to find the most recognizable BRAND NAME that customers would know.
 
+KNOWN VENDOR DATABASE:
+${relevantVendors.length > 0 ? relevantVendors.map(vendor => 
+  `- ${vendor.brand}: Descriptors: "${vendor.transactionDescriptors.join(', ')}" | Category: ${vendor.category} | Company: ${vendor.registeredCompanyName}`
+).join('\n') : 'No matching vendors found in database.'}
+
 Think through this step by step:
-1. First, identify if this is a UPI transaction and determine if it's to a person or company
-2. For UPI person payments: Extract and return the clean person's name
-3. For UPI company payments: Focus on de-anonymizing the business/merchant name
-4. For non-UPI transactions: Identify payment gateway codes (RAZOR, PAYU, etc.) and underlying merchants
-5. Search online for information about companies to find their brand names
-6. Prioritize brand names that customers would recognize over legal entity names
+1. First, check if the transaction matches any vendors in the KNOWN VENDOR DATABASE above
+2. Identify if this is a UPI transaction and determine if it's to a person or company
+3. For UPI person payments: Extract and return the clean person's name
+4. For UPI company payments: Focus on de-anonymizing the business/merchant name
+5. For non-UPI transactions: Identify payment gateway codes (RAZOR, PAYU, etc.) and underlying merchants
+6. Search online for information about companies to find their brand names
+7. Prioritize brand names that customers would recognize over legal entity names
 
 Task: Identify the vendor for this transaction: "${original_text}"
 

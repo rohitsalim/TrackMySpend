@@ -31,6 +31,7 @@ interface TransactionStore {
   fetchTransactions: (page?: number) => Promise<void>
   fetchCategories: () => Promise<void>
   updateTransaction: (id: string, updates: Partial<Transaction>) => Promise<void>
+  updateTransactionCategory: (id: string, categoryId: string, categoryData?: Category) => Promise<void>
   bulkCategorize: (ids: string[], categoryId: string) => Promise<void>
   createCategory: (name: string, color?: string, icon?: string, parentId?: string | null) => Promise<Category>
   updateCategory: (id: string, updates: Partial<Category>) => Promise<void>
@@ -180,6 +181,41 @@ export const useTransactionStore = create<TransactionStore>((set, get) => ({
     } catch (error) {
       set({ 
         error: error instanceof Error ? error.message : 'Failed to update transaction' 
+      })
+    }
+  },
+
+  // Update transaction category with proper relationship data
+  updateTransactionCategory: async (id, categoryId, categoryData) => {
+    try {
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      
+      if (!user) {
+        throw new Error('User not authenticated')
+      }
+
+      const { error } = await supabase
+        .from('transactions')
+        .update({ category_id: categoryId })
+        .eq('id', id)
+        .eq('user_id', user.id)
+      
+      if (error) throw error
+      
+      // Update local state with both category_id and categories object
+      set(state => ({
+        transactions: state.transactions.map(t => 
+          t.id === id ? { 
+            ...t, 
+            category_id: categoryId,
+            categories: categoryData || state.categories.find(cat => cat.id === categoryId) || null
+          } : t
+        )
+      }))
+    } catch (error) {
+      set({ 
+        error: error instanceof Error ? error.message : 'Failed to update transaction category' 
       })
     }
   },
