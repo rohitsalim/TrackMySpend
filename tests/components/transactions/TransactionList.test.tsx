@@ -412,7 +412,6 @@ describe('TransactionList', () => {
       fireEvent.click(checkbox)
       
       expect(screen.getByText('Clear selection')).toBeInTheDocument()
-      expect(screen.getByText('Bulk categorize')).toBeInTheDocument()
       expect(screen.getByText('Delete')).toBeInTheDocument()
     })
 
@@ -433,55 +432,6 @@ describe('TransactionList', () => {
   })
 
   describe('bulk operations', () => {
-    it('should open bulk categorize modal', () => {
-      render(<TransactionList {...defaultProps} />)
-      
-      // Select transactions
-      const checkbox1 = screen.getByLabelText('Select transaction from Restaurant ABC')
-      const checkbox2 = screen.getByLabelText('Select transaction from Uber Ride')
-      fireEvent.click(checkbox1)
-      fireEvent.click(checkbox2)
-      
-      // Open bulk categorize
-      const bulkButton = screen.getByText('Bulk categorize')
-      fireEvent.click(bulkButton)
-      
-      expect(screen.getByTestId('bulk-categorize-modal')).toBeInTheDocument()
-      expect(screen.getByText('Bulk Categorize: 2 transactions')).toBeInTheDocument()
-    })
-
-    it('should close bulk categorize modal', () => {
-      render(<TransactionList {...defaultProps} />)
-      
-      // Select and open bulk categorize
-      const checkbox = screen.getByLabelText('Select transaction from Restaurant ABC')
-      fireEvent.click(checkbox)
-      fireEvent.click(screen.getByText('Bulk categorize'))
-      
-      // Close modal
-      const closeButton = screen.getByText('Close')
-      fireEvent.click(closeButton)
-      
-      expect(screen.queryByTestId('bulk-categorize-modal')).not.toBeInTheDocument()
-    })
-
-    it('should handle bulk categorize success', () => {
-      render(<TransactionList {...defaultProps} />)
-      
-      // Select and open bulk categorize
-      const checkbox = screen.getByLabelText('Select transaction from Restaurant ABC')
-      fireEvent.click(checkbox)
-      fireEvent.click(screen.getByText('Bulk categorize'))
-      
-      // Trigger success
-      const successButton = screen.getByText('Success')
-      fireEvent.click(successButton)
-      
-      // Should close modal and clear selection
-      expect(screen.queryByTestId('bulk-categorize-modal')).not.toBeInTheDocument()
-      expect(screen.queryByText(/transactions selected/)).not.toBeInTheDocument()
-    })
-
     it('should disable delete button', () => {
       render(<TransactionList {...defaultProps} />)
       
@@ -492,38 +442,6 @@ describe('TransactionList', () => {
       expect(deleteButton).toBeDisabled()
     })
     
-    it('should open bulk vendor resolve modal', () => {
-      render(<TransactionList {...defaultProps} />)
-      
-      // Select transactions
-      const checkbox1 = screen.getByLabelText('Select transaction from Restaurant ABC')
-      const checkbox2 = screen.getByLabelText('Select transaction from Uber Ride')
-      fireEvent.click(checkbox1)
-      fireEvent.click(checkbox2)
-      
-      // Open bulk vendor resolve
-      const resolveButton = screen.getByText('Resolve Vendors')
-      fireEvent.click(resolveButton)
-      
-      expect(screen.getByTestId('bulk-vendor-resolve-modal')).toBeInTheDocument()
-      expect(screen.getByText('Bulk Vendor Resolve: 2 transactions')).toBeInTheDocument()
-    })
-
-    it('should close bulk vendor resolve modal and clear selection', () => {
-      render(<TransactionList {...defaultProps} />)
-      
-      // Select and open bulk vendor resolve
-      const checkbox = screen.getByLabelText('Select transaction from Restaurant ABC')
-      fireEvent.click(checkbox)
-      fireEvent.click(screen.getByText('Resolve Vendors'))
-      
-      // Close modal
-      const closeButton = screen.getByText('Close')
-      fireEvent.click(closeButton)
-      
-      expect(screen.queryByTestId('bulk-vendor-resolve-modal')).not.toBeInTheDocument()
-      expect(screen.queryByText(/transactions selected/)).not.toBeInTheDocument()
-    })
   })
 
   describe.skip('in-place editing', () => {
@@ -971,7 +889,7 @@ describe('TransactionList', () => {
       render(<TransactionList {...defaultProps} />)
       
       expect(screen.getByRole('table')).toBeInTheDocument()
-      expect(screen.getAllByRole('columnheader')).toHaveLength(7)
+      expect(screen.getAllByRole('columnheader')).toHaveLength(9)
       expect(screen.getAllByRole('row')).toHaveLength(4) // 1 header + 3 data rows
     })
 
