@@ -10,16 +10,17 @@ import { RefreshCw, Download } from 'lucide-react'
 
 export default function TransactionsPage() {
   const {
-    transactions,
     categories,
     isLoading,
     error,
-    totalCount,
     currentPage,
     pageSize,
-    fetchTransactions,
+    ensureTransactionsLoaded,
+    refreshAllTransactions,
     fetchCategories,
-    setPage
+    setPage,
+    getPaginatedTransactions,
+    getFilteredTransactions
   } = useTransactionStore()
 
   const [isInitialLoad, setIsInitialLoad] = useState(true)
@@ -27,19 +28,19 @@ export default function TransactionsPage() {
   useEffect(() => {
     const loadData = async () => {
       await fetchCategories()
-      await fetchTransactions(1)
+      await ensureTransactionsLoaded() // Load all transactions
       setIsInitialLoad(false)
     }
     loadData()
-  }, [fetchCategories, fetchTransactions])
+  }, [fetchCategories, ensureTransactionsLoaded])
 
   const handleRefresh = async () => {
-    await fetchTransactions(currentPage)
+    await refreshAllTransactions()
   }
 
-  const handlePageChange = async (page: number) => {
+  const handlePageChange = (page: number) => {
     setPage(page)
-    await fetchTransactions(page)
+    // No need to fetch - we use client-side pagination
   }
 
   const handleExport = () => {
@@ -104,10 +105,10 @@ export default function TransactionsPage() {
 
       {/* Transaction List */}
       <TransactionList
-        transactions={transactions}
+        transactions={getPaginatedTransactions()}
         categories={categories}
         isLoading={isLoading}
-        totalCount={totalCount}
+        totalCount={getFilteredTransactions().length}
         currentPage={currentPage}
         pageSize={pageSize}
         onPageChange={handlePageChange}

@@ -19,6 +19,7 @@ interface TransactionFilters {
 interface TransactionStore {
   // State
   transactions: Transaction[]
+  allTransactionsLoaded: boolean
   categories: Category[]
   filters: TransactionFilters
   isLoading: boolean
@@ -29,6 +30,8 @@ interface TransactionStore {
   
   // Actions
   fetchTransactions: (page?: number) => Promise<void>
+  ensureTransactionsLoaded: () => Promise<void>
+  refreshAllTransactions: () => Promise<void>
   fetchCategories: () => Promise<void>
   updateTransaction: (id: string, updates: Partial<Transaction>) => Promise<void>
   updateTransactionCategory: (id: string, categoryId: string, categoryData?: Category) => Promise<void>
@@ -42,6 +45,7 @@ interface TransactionStore {
   
   // Selectors
   getFilteredTransactions: () => Transaction[]
+  getPaginatedTransactions: () => Transaction[]
   getMonthlyTotals: () => { month: string; income: number; expenses: number }[]
 }
 
@@ -59,6 +63,7 @@ const defaultFilters: TransactionFilters = {
 export const useTransactionStore = create<TransactionStore>((set, get) => ({
   // Initial state
   transactions: [],
+  allTransactionsLoaded: false,
   categories: [],
   filters: defaultFilters,
   isLoading: false,
@@ -126,6 +131,55 @@ export const useTransactionStore = create<TransactionStore>((set, get) => ({
         isLoading: false 
       })
     }
+  },
+  
+  // Ensure all transactions are loaded (called by both dashboard and transactions page)
+  ensureTransactionsLoaded: async () => {
+    const { allTransactionsLoaded, isLoading } = get()
+    
+    // Return early if already loaded or currently loading
+    if (allTransactionsLoaded || isLoading) {
+      return
+    }
+    
+    set({ isLoading: true, error: null })
+    
+    try {
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      
+      if (!user) {
+        throw new Error('User not authenticated')
+      }
+      
+      // Fetch all transactions without pagination
+      const { data, error } = await supabase
+        .from('transactions')
+        .select('*, categories(*)')
+        .eq('user_id', user.id)
+        .order('transaction_date', { ascending: false })
+      
+      if (error) throw error
+      
+      const fetchedTransactions = data || []
+      set({ 
+        transactions: fetchedTransactions,
+        totalCount: fetchedTransactions.length,
+        allTransactionsLoaded: true,
+        isLoading: false 
+      })
+    } catch (error) {
+      set({ 
+        error: error instanceof Error ? error.message : 'Failed to fetch transactions',
+        isLoading: false
+      })
+    }
+  },
+  
+  // Force refresh all transactions
+  refreshAllTransactions: async () => {
+    set({ allTransactionsLoaded: false })
+    await get().ensureTransactionsLoaded()
   },
   
   // Fetch categories
@@ -394,12 +448,46 @@ export const useTransactionStore = create<TransactionStore>((set, get) => ({
         return false
       }
       
+      if (filters.dateRange.start) {
+        const txDate = new Date(tx.transaction_date)
+        if (txDate < filters.dateRange.start) return false
+      }
+      
+      if (filters.dateRange.end) {
+        const txDate = new Date(tx.transaction_date)
+        if (txDate > filters.dateRange.end) return false
+      }
+      
+      if (filters.categories.length > 0 && !filters.categories.includes(tx.category_id || '')) {
+        return false
+      }
+      
       if (filters.vendors.length > 0 && !filters.vendors.includes(tx.vendor_name)) {
         return false
       }
       
+      if (filters.searchTerm) {
+        const searchLower = filters.searchTerm.toLowerCase()
+        const vendorMatch = tx.vendor_name.toLowerCase().includes(searchLower)
+        const originalVendorMatch = tx.vendor_name_original?.toLowerCase().includes(searchLower)
+        const notesMatch = tx.notes?.toLowerCase().includes(searchLower)
+        
+        if (!vendorMatch && !originalVendorMatch && !notesMatch) {
+          return false
+        }
+      }
+      
       return true
     })
+  },
+  
+  // Get paginated transactions for the transactions page
+  getPaginatedTransactions: () => {
+    const { currentPage, pageSize } = get()
+    const filteredTransactions = get().getFilteredTransactions()
+    
+    const offset = (currentPage - 1) * pageSize
+    return filteredTransactions.slice(offset, offset + pageSize)
   },
   
   // Get monthly totals
