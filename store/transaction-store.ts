@@ -1,6 +1,15 @@
 import { create } from 'zustand'
 import { createClient } from '@/lib/supabase/client'
 import type { Database } from '@/types/database'
+import { 
+  type Insight,
+  type InsightsCacheData,
+  generateInsightsHash,
+  persistInsightsCache,
+  loadInsightsCache,
+  clearInsightsCache,
+  isCacheValid
+} from '@/lib/utils/insights-cache'
 
 type Transaction = Database['public']['Tables']['transactions']['Row']
 type Category = Database['public']['Tables']['categories']['Row']
@@ -28,6 +37,14 @@ interface TransactionStore {
   currentPage: number
   pageSize: number
   
+  // Insights Cache State
+  cachedInsights: Insight[] | null
+  insightsMetadata: {
+    hash: string
+    timestamp: number
+    version: string
+  } | null
+  
   // Actions
   fetchTransactions: (page?: number) => Promise<void>
   ensureTransactionsLoaded: () => Promise<void>
@@ -42,6 +59,13 @@ interface TransactionStore {
   setFilters: (filters: Partial<TransactionFilters>) => void
   setPage: (page: number) => void
   resetFilters: () => void
+  
+  // Insights Cache Actions
+  getCachedInsights: () => Insight[] | null
+  setCachedInsights: (insights: Insight[], hash: string) => void
+  clearInsightsCacheStore: () => void
+  shouldRefreshInsights: () => boolean
+  loadInsightsCacheFromStorage: () => void
   
   // Selectors
   getFilteredTransactions: () => Transaction[]
@@ -71,6 +95,10 @@ export const useTransactionStore = create<TransactionStore>((set, get) => ({
   totalCount: 0,
   currentPage: 1,
   pageSize: 50,
+  
+  // Insights Cache Initial State
+  cachedInsights: null,
+  insightsMetadata: null,
   
   // Fetch transactions with pagination and filters
   fetchTransactions: async (page = 1) => {
@@ -180,6 +208,8 @@ export const useTransactionStore = create<TransactionStore>((set, get) => ({
   refreshAllTransactions: async () => {
     set({ allTransactionsLoaded: false })
     await get().ensureTransactionsLoaded()
+    // Clear insights cache since we refreshed transaction data
+    get().clearInsightsCacheStore()
   },
   
   // Fetch categories
@@ -232,6 +262,9 @@ export const useTransactionStore = create<TransactionStore>((set, get) => ({
           t.id === id ? { ...t, ...updates } : t
         )
       }))
+      
+      // Clear insights cache since transaction data changed
+      get().clearInsightsCacheStore()
     } catch (error) {
       set({ 
         error: error instanceof Error ? error.message : 'Failed to update transaction' 
@@ -267,6 +300,9 @@ export const useTransactionStore = create<TransactionStore>((set, get) => ({
           } : t
         )
       }))
+      
+      // Clear insights cache since categorization changed
+      get().clearInsightsCacheStore()
     } catch (error) {
       set({ 
         error: error instanceof Error ? error.message : 'Failed to update transaction category' 
@@ -298,6 +334,9 @@ export const useTransactionStore = create<TransactionStore>((set, get) => ({
           ids.includes(t.id) ? { ...t, category_id: categoryId } : t
         )
       }))
+      
+      // Clear insights cache since bulk categorization changed
+      get().clearInsightsCacheStore()
     } catch (error) {
       set({ 
         error: error instanceof Error ? error.message : 'Failed to categorize transactions' 
@@ -512,5 +551,61 @@ export const useTransactionStore = create<TransactionStore>((set, get) => ({
     return Object.entries(monthlyData)
       .map(([month, data]) => ({ month, ...data }))
       .sort((a, b) => b.month.localeCompare(a.month))
+  },
+
+  // Insights Cache Methods
+  getCachedInsights: () => {
+    const { cachedInsights } = get()
+    return cachedInsights
+  },
+
+  setCachedInsights: (insights: Insight[], hash: string) => {
+    const metadata = {
+      hash,
+      timestamp: Date.now(),
+      version: '1.0.0'
+    }
+    
+    set({
+      cachedInsights: insights,
+      insightsMetadata: metadata
+    })
+    
+    // Persist to localStorage
+    persistInsightsCache(insights, hash)
+  },
+
+  clearInsightsCacheStore: () => {
+    set({
+      cachedInsights: null,
+      insightsMetadata: null
+    })
+    
+    // Clear from localStorage
+    clearInsightsCache()
+  },
+
+  shouldRefreshInsights: () => {
+    const { transactions, categories, cachedInsights, insightsMetadata } = get()
+    
+    // No cache exists
+    if (!cachedInsights || !insightsMetadata) {
+      return true
+    }
+    
+    // Check if current data matches cached hash
+    const currentHash = generateInsightsHash(transactions, categories)
+    return currentHash !== insightsMetadata.hash
+  },
+
+  loadInsightsCacheFromStorage: () => {
+    const cacheData = loadInsightsCache()
+    
+    if (cacheData) {
+      set({
+        cachedInsights: cacheData.insights,
+        insightsMetadata: cacheData.metadata
+      })
+    }
   }
 }))

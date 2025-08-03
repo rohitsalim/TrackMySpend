@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -12,17 +12,13 @@ import {
   RefreshCw, 
   Sparkles 
 } from 'lucide-react'
+import { useTransactionStore } from '@/store/transaction-store'
+import { generateInsightsHash } from '@/lib/utils/insights-cache'
 import type { Database } from '@/types/database'
+import type { Insight } from '@/lib/utils/insights-cache'
 
 type Transaction = Database['public']['Tables']['transactions']['Row']
 type Category = Database['public']['Tables']['categories']['Row']
-
-interface Insight {
-  type: 'positive' | 'negative' | 'warning' | 'neutral'
-  title: string
-  description: string
-  icon: 'trending-up' | 'trending-down' | 'alert-circle' | 'info'
-}
 
 interface InsightsCardProps {
   transactions: Transaction[]
@@ -44,11 +40,28 @@ const typeStyles = {
 }
 
 export function InsightsCard({ transactions, categories }: InsightsCardProps) {
+  const {
+    getCachedInsights,
+    setCachedInsights,
+    shouldRefreshInsights,
+    loadInsightsCacheFromStorage
+  } = useTransactionStore()
+  
   const [insights, setInsights] = useState<Insight[]>([])
   const [loading, setLoading] = useState(false)
-  const [hasLoaded, setHasLoaded] = useState(false)
+  const [hasInitialized, setHasInitialized] = useState(false)
 
-  const generateInsights = async () => {
+  // Load cache from localStorage on component mount
+  useEffect(() => {
+    if (!hasInitialized) {
+      loadInsightsCacheFromStorage()
+      setHasInitialized(true)
+    }
+  }, [loadInsightsCacheFromStorage, hasInitialized])
+
+  const generateInsights = useCallback(async () => {
+    if (transactions.length === 0) return
+    
     setLoading(true)
     try {
       const response = await fetch('/api/insights', {
@@ -64,29 +77,51 @@ export function InsightsCard({ transactions, categories }: InsightsCardProps) {
       }
 
       const data = await response.json()
-      setInsights(data.insights)
-      setHasLoaded(true)
+      const newInsights = data.insights
+      
+      // Update state
+      setInsights(newInsights)
+      
+      // Cache the insights with current data hash
+      const currentHash = generateInsightsHash(transactions, categories)
+      setCachedInsights(newInsights, currentHash)
+      
     } catch (error) {
       console.error('Error generating insights:', error)
       // Set default insights on error
-      setInsights([
+      const errorInsights = [
         {
-          type: 'neutral',
+          type: 'neutral' as const,
           title: 'Insights Unavailable',
           description: 'Unable to generate insights at this time. Please try again later.',
-          icon: 'info'
+          icon: 'info' as const
         }
-      ])
-      setHasLoaded(true)
+      ]
+      setInsights(errorInsights)
     } finally {
       setLoading(false)
     }
-  }
+  }, [transactions, categories, setCachedInsights])
 
-  // Auto-generate insights on first render
-  if (!hasLoaded && !loading && transactions.length > 0) {
-    generateInsights()
-  }
+  // Check cache and load insights
+  useEffect(() => {
+    const loadInsights = async () => {
+      if (!hasInitialized || transactions.length === 0) return
+      
+      const cachedInsights = getCachedInsights()
+      const needsRefresh = shouldRefreshInsights()
+      
+      if (cachedInsights && !needsRefresh) {
+        // Use cached insights
+        setInsights(cachedInsights)
+      } else if (!loading) {
+        // Generate fresh insights
+        await generateInsights()
+      }
+    }
+    
+    loadInsights()
+  }, [transactions, categories, hasInitialized, getCachedInsights, shouldRefreshInsights, loading, generateInsights])
 
   return (
     <Card>
@@ -96,7 +131,7 @@ export function InsightsCard({ transactions, categories }: InsightsCardProps) {
           AI Financial Insights
         </CardTitle>
         <Button
-          onClick={generateInsights}
+          onClick={() => generateInsights()}
           variant="ghost"
           size="sm"
           disabled={loading}
