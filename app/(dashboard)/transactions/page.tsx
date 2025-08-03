@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react'
 import { useTransactionStore } from '@/store/transaction-store'
 import { TransactionList } from '@/components/transactions/TransactionList'
 import { TransactionFilters } from '@/components/transactions/TransactionFilters'
-import { TransactionStats } from '@/components/transactions/TransactionStats'
 import { Button } from '@/components/ui/button'
 import { RefreshCw, Download } from 'lucide-react'
 
@@ -89,9 +88,6 @@ export default function TransactionsPage() {
           </Button>
         </div>
       </div>
-
-      {/* Stats */}
-      <TransactionStats />
 
       {/* Filters */}
       <TransactionFilters />

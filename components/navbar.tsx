@@ -45,13 +45,22 @@ export function Navbar() {
         <div className="flex flex-1 items-center justify-end">
           <div className="flex items-center space-x-2">
             {hasUploadedFiles && (
-              <Button 
-                variant="secondary"
+              <button 
                 onClick={() => setUploadModalOpen(true)}
+                className="inline-flex items-center justify-center rounded-md text-sm font-medium h-9 px-4 py-2 text-primary hover:text-white transition-colors duration-200 cursor-pointer"
+                style={{ 
+                  backgroundColor: 'color-mix(in oklab, var(--primary) 10%, transparent)'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = 'var(--primary)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = 'color-mix(in oklab, var(--primary) 10%, transparent)';
+                }}
               >
                 <Upload className="mr-2 h-4 w-4" />
                 Upload Statement
-              </Button>
+              </button>
             )}
             
             {user ? (

@@ -11,6 +11,9 @@ import {
 import { formatCurrency } from '@/lib/utils/formatters'
 import { ChartWrapper } from './ChartWrapper'
 import type { CategoryBreakdown } from '@/lib/utils/dashboard-data'
+import { PieChart as PieChartIcon, ArrowRight } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { Button } from '@/components/ui/button'
 
 interface CategoryBreakdownChartProps {
   data: CategoryBreakdown[]
@@ -31,6 +34,38 @@ const COLORS = [
 ]
 
 export function CategoryBreakdownChart({ data }: CategoryBreakdownChartProps) {
+  const router = useRouter()
+  
+  // Show empty state if no data
+  if (!data || data.length === 0) {
+    return (
+      <ChartWrapper 
+        title="Category Breakdown" 
+        description="Your spending distribution by category"
+      >
+        <div className="flex flex-col items-center justify-center h-full py-8">
+          <div className="h-16 w-16 rounded-full bg-muted/50 flex items-center justify-center mb-4">
+            <PieChartIcon className="h-8 w-8 text-muted-foreground/70" />
+          </div>
+          <h3 className="text-base font-medium text-foreground mb-2">
+            No category data available
+          </h3>
+          <p className="text-xs text-muted-foreground text-center max-w-[250px] leading-relaxed">
+            Start categorizing your transactions to see spending breakdown
+          </p>
+          <Button 
+            onClick={() => router.push('/transactions')}
+            size="sm"
+            className="mt-4"
+          >
+            Go to Transactions
+            <ArrowRight className="ml-2 h-4 w-4" />
+          </Button>
+        </div>
+      </ChartWrapper>
+    )
+  }
+
   const CustomTooltip = ({ active, payload }: {
     active?: boolean
     payload?: Array<{ payload: CategoryBreakdown }>

@@ -13,7 +13,9 @@ import {
 import { formatCurrency } from '@/lib/utils/formatters'
 import { ChartWrapper } from './ChartWrapper'
 import type { MonthlyComparison } from '@/lib/utils/dashboard-data'
-import { TrendingUp, TrendingDown } from 'lucide-react'
+import { TrendingUp, TrendingDown, BarChart3, ArrowRight } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { Button } from '@/components/ui/button'
 
 interface MonthlyComparisonChartProps {
   data: MonthlyComparison[]
@@ -26,6 +28,38 @@ export function MonthlyComparisonChart({
   currentMonth, 
   previousMonth 
 }: MonthlyComparisonChartProps) {
+  const router = useRouter()
+  
+  // Show empty state if no data
+  if (!data || data.length === 0) {
+    return (
+      <ChartWrapper 
+        title="Monthly Comparison" 
+        description="Category spending compared to last month"
+      >
+        <div className="flex flex-col items-center justify-center h-full py-8">
+          <div className="h-16 w-16 rounded-full bg-muted/50 flex items-center justify-center mb-4">
+            <BarChart3 className="h-8 w-8 text-muted-foreground/70" />
+          </div>
+          <h3 className="text-base font-medium text-foreground mb-2">
+            Not enough data for comparison
+          </h3>
+          <p className="text-xs text-muted-foreground text-center max-w-[250px] leading-relaxed">
+            Need at least two months of data to show comparisons
+          </p>
+          <Button 
+            onClick={() => router.push('/transactions')}
+            size="sm"
+            className="mt-4"
+          >
+            View Transactions
+            <ArrowRight className="ml-2 h-4 w-4" />
+          </Button>
+        </div>
+      </ChartWrapper>
+    )
+  }
+
   const formatYAxis = (value: number) => {
     if (value >= 1000000) {
       return `₹${(value / 1000000).toFixed(1)}M`
