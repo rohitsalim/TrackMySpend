@@ -58,7 +58,7 @@ export function CategoryManagement({ onAddSubcategory }: CategoryManagementProps
         ) : (
           <div className="text-center py-12">
             <p className="text-muted-foreground mb-4">No categories found.</p>
-            <p className="text-muted-foreground">Use the "New Category" button above to create your first category.</p>
+            <p className="text-muted-foreground">Use the &quot;New Category&quot; button above to create your first category.</p>
           </div>
         )}
       </div>

@@ -17,7 +17,6 @@ import {
   X, 
   BarChart3
 } from 'lucide-react'
-import { cn } from '@/lib/utils'
 import type { Database } from '@/types/database'
 
 type Category = Database['public']['Tables']['categories']['Row']
