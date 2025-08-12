@@ -25,7 +25,8 @@ import {
   User
 } from 'lucide-react'
 import { useTransactionStore } from '@/store/transaction-store'
-import { type CategoryWithChildren } from '@/types/categories'
+import { type CategoryWithChildren, getCategoryPath } from '@/types/categories'
+import { Badge } from '@/components/ui/badge'
 import type { Database } from '@/types/database'
 import { cn } from '@/lib/utils'
 
@@ -67,8 +68,9 @@ export function CategoryNode({
   const fullPath = [...parentPath, category.name]
   
   // Calculate indentation for current level
-  const indentSize = 30 // pixels per level
+  const indentSize = hasChildren ? 32 : 40 // pixels per level - less for leaf nodes
   const connectorIndent = 32 // additional indentation for tree connectors
+  
   
   const handleDelete = async () => {
     setIsDeleting(true)
@@ -161,24 +163,25 @@ export function CategoryNode({
         }}
       >
         <div className="flex items-center gap-2 flex-1 min-w-0">
-          {/* Expand/Collapse Button */}
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-6 w-6 p-0 hover:bg-background/50"
-            onClick={() => onToggleExpand(category.id)}
-            disabled={!hasChildren}
-          >
-            {hasChildren ? (
-              isExpanded ? (
-                <ChevronDown className="h-4 w-4" />
-              ) : (
-                <ChevronRight className="h-4 w-4" />
-              )
-            ) : (
-              <div className="h-4 w-4" />
-            )}
-          </Button>
+          {/* Expand/Collapse Button - Reserve space only for root categories or categories with children */}
+          {(hasChildren || level === 0) && (
+            <div className="w-6 h-6 flex items-center justify-center shrink-0">
+              {hasChildren && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-6 w-6 p-0 hover:bg-background/50"
+                  onClick={() => onToggleExpand(category.id)}
+                >
+                  {isExpanded ? (
+                    <ChevronDown className="h-4 w-4" />
+                  ) : (
+                    <ChevronRight className="h-4 w-4" />
+                  )}
+                </Button>
+              )}
+            </div>
+          )}
           
           {/* Category Icon */}
           {hasChildren ? (
@@ -203,32 +206,45 @@ export function CategoryNode({
             
             {/* Name */}
             <span className={cn(
-              "font-medium truncate text-sm",
+              "font-medium text-sm shrink-0",
               category.is_system && "text-muted-foreground"
             )}>
               {highlightText(category.name)}
             </span>
             
-            {/* Type badge - simplified */}
-            <div className="flex items-center gap-1">
-              {category.is_system ? (
-                <Lock className="h-3 w-3 text-muted-foreground" />
-              ) : (
-                <User className="h-3 w-3 text-primary/60" />
-              )}
-            </div>
+            {/* Type badge - full badge like list view */}
+            {category.is_system ? (
+              <Badge variant="secondary" className="gap-1 h-5 px-1.5 shrink-0">
+                <Lock className="h-3 w-3" />
+                <span className="text-xs">System</span>
+              </Badge>
+            ) : (
+              <Badge variant="outline" className="gap-1 h-5 px-1.5 text-primary border-primary/30 shrink-0">
+                <User className="h-3 w-3" />
+                <span className="text-xs">Custom</span>
+              </Badge>
+            )}
             
-            {/* Child count */}
-            {hasChildren && (
-              <span className="text-xs text-muted-foreground ml-1">
-                {category.children.length}
-              </span>
+            {/* Path display */}
+            {level > 0 && (
+              <div className="flex items-center gap-1 text-xs text-muted-foreground min-w-0">
+                <span className="truncate">
+                  {getCategoryPath(category.id, allCategories)}
+                </span>
+              </div>
             )}
           </div>
         </div>
         
         {/* Actions */}
-        <div className="flex items-center gap-0.5">
+        <div className="flex items-center gap-1">
+          {/* Child count badge */}
+          {hasChildren && (
+            <Badge variant="outline" className="h-5 px-1.5 text-xs">
+              {category.children.length} children
+            </Badge>
+          )}
+          
           {/* Add subcategory button - available for all categories */}
           <Button
             variant="ghost"

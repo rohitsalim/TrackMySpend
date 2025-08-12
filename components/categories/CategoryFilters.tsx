@@ -15,8 +15,6 @@ import {
   Search, 
   Filter, 
   X, 
-  List,
-  FolderTree,
   BarChart3
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -30,8 +28,6 @@ interface CategoryFiltersProps {
   onSearchChange: (value: string) => void
   typeFilter: 'all' | 'system' | 'custom'
   onTypeFilterChange: (value: 'all' | 'system' | 'custom') => void
-  viewMode: 'tree' | 'list'
-  onViewModeChange: (value: 'tree' | 'list') => void
 }
 
 export function CategoryFilters({
@@ -39,9 +35,7 @@ export function CategoryFilters({
   searchTerm,
   onSearchChange,
   typeFilter,
-  onTypeFilterChange,
-  viewMode,
-  onViewModeChange
+  onTypeFilterChange
 }: CategoryFiltersProps) {
   const [localSearchTerm, setLocalSearchTerm] = useState(searchTerm)
   
@@ -126,34 +120,6 @@ export function CategoryFilters({
             <SelectItem value="custom">Custom Only</SelectItem>
           </SelectContent>
         </Select>
-        
-        {/* View Mode Toggle */}
-        <div className="flex gap-1 p-1 bg-muted rounded-lg">
-          <Button
-            variant={viewMode === 'tree' ? 'secondary' : 'ghost'}
-            size="sm"
-            className={cn(
-              "gap-2 px-3",
-              viewMode === 'tree' && "shadow-sm"
-            )}
-            onClick={() => onViewModeChange('tree')}
-          >
-            <FolderTree className="h-4 w-4" />
-            <span className="hidden sm:inline">Tree</span>
-          </Button>
-          <Button
-            variant={viewMode === 'list' ? 'secondary' : 'ghost'}
-            size="sm"
-            className={cn(
-              "gap-2 px-3",
-              viewMode === 'list' && "shadow-sm"
-            )}
-            onClick={() => onViewModeChange('list')}
-          >
-            <List className="h-4 w-4" />
-            <span className="hidden sm:inline">List</span>
-          </Button>
-        </div>
       </div>
       
       {/* Active Filters Indicator */}
