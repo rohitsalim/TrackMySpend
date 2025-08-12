@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import React, { useState } from 'react'
 import {
   Dialog,
   DialogContent,
@@ -20,12 +20,15 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { useTransactionStore } from '@/store/transaction-store'
-import { flattenCategoryTree, buildCategoryTree } from '@/types/categories'
+import { flattenCategoryTree, buildCategoryTree, getCategoryPath } from '@/types/categories'
+import { ChevronRight } from 'lucide-react'
+import type { Database } from '@/types/database'
 
 interface CreateCategoryModalProps {
   open: boolean
   onClose: () => void
   onSuccess?: () => void
+  parentCategory?: Database['public']['Tables']['categories']['Row'] | null
 }
 
 // Predefined color options for categories
@@ -40,12 +43,12 @@ const CATEGORY_COLORS = [
   { name: 'Teal', value: '#14B8A6' },
 ]
 
-export function CreateCategoryModal({ open, onClose, onSuccess }: CreateCategoryModalProps) {
+export function CreateCategoryModal({ open, onClose, onSuccess, parentCategory }: CreateCategoryModalProps) {
   const { categories, createCategory } = useTransactionStore()
   
   const [name, setName] = useState('')
   const [color, setColor] = useState(CATEGORY_COLORS[0].value)
-  const [parentId, setParentId] = useState<string>('none')
+  const [parentId, setParentId] = useState<string>(parentCategory?.id || 'none')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   
@@ -90,18 +93,39 @@ export function CreateCategoryModal({ open, onClose, onSuccess }: CreateCategory
     // Reset form when closing
     setName('')
     setColor(CATEGORY_COLORS[0].value)
-    setParentId('none')
+    setParentId(parentCategory?.id || 'none')
     setError(null)
   }
+  
+  // Update parentId when parentCategory changes
+  React.useEffect(() => {
+    setParentId(parentCategory?.id || 'none')
+  }, [parentCategory])
   
   return (
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-[425px]">
         <form onSubmit={handleSubmit}>
           <DialogHeader>
-            <DialogTitle>Create New Category</DialogTitle>
+            <DialogTitle>
+              {parentCategory ? 'Create Subcategory' : 'Create New Category'}
+            </DialogTitle>
             <DialogDescription>
-              Add a custom category to organize your transactions.
+              {parentCategory ? (
+                <div className="space-y-2">
+                  <p>Add a subcategory under:</p>
+                  <div className="flex items-center gap-1 text-sm font-medium">
+                    {getCategoryPath(parentCategory.id, categories).split(' > ').map((part, index, arr) => (
+                      <span key={index} className="flex items-center gap-1">
+                        {index > 0 && <ChevronRight className="h-3 w-3" />}
+                        <span className={index === arr.length - 1 ? 'text-primary' : ''}>{part}</span>
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                'Add a custom category to organize your transactions.'
+              )}
             </DialogDescription>
           </DialogHeader>
           
@@ -117,22 +141,24 @@ export function CreateCategoryModal({ open, onClose, onSuccess }: CreateCategory
               />
             </div>
             
-            <div className="space-y-2">
-              <Label htmlFor="parent">Parent Category</Label>
-              <Select value={parentId} onValueChange={setParentId}>
-                <SelectTrigger id="parent">
-                  <SelectValue placeholder="Select parent category" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">None (Top Level)</SelectItem>
-                  {flatCategories.map(({ category, level }) => (
-                    <SelectItem key={category.id} value={category.id}>
-                      {'  '.repeat(level)}{category.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            {!parentCategory && (
+              <div className="space-y-2">
+                <Label htmlFor="parent">Parent Category</Label>
+                <Select value={parentId} onValueChange={setParentId}>
+                  <SelectTrigger id="parent">
+                    <SelectValue placeholder="Select parent category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">None (Top Level)</SelectItem>
+                    {flatCategories.map(({ category, level }) => (
+                      <SelectItem key={category.id} value={category.id}>
+                        {'  '.repeat(level)}{category.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
             
             <div className="space-y-2">
               <Label>Color</Label>

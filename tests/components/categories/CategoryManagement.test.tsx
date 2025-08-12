@@ -9,7 +9,7 @@ type Category = Database['public']['Tables']['categories']['Row']
 // Mock the transaction store
 vi.mock('@/store/transaction-store')
 
-// Mock child components
+// Mock child components  
 vi.mock('@/components/categories/CreateCategoryModal', () => ({
   CreateCategoryModal: ({ open, onClose }: { open: boolean; onClose: () => void }) => 
     open ? (
@@ -38,6 +38,26 @@ vi.mock('@/components/categories/CategoryTree', () => ({
           <button onClick={() => onEditCategory(category)}>Edit {category.name}</button>
         </div>
       ))}
+    </div>
+  )
+}))
+
+vi.mock('@/components/categories/CategoryListView', () => ({
+  CategoryListView: ({ categories }: { categories: Array<{ id: string; name: string }> }) => (
+    <div data-testid="category-list-view">
+      {categories.map((category) => (
+        <div key={category.id}>{category.name}</div>
+      ))}
+    </div>
+  )
+}))
+
+vi.mock('@/components/categories/CategoryFilters', () => ({
+  CategoryFilters: ({ categories }: { categories: Array<{ id: string; name: string }> }) => (
+    <div data-testid="category-filters">
+      <div>Total: {categories.length}</div>
+      <div>System: {categories.filter((c: any) => c.is_system).length}</div>
+      <div>Custom: {categories.filter((c: any) => !c.is_system).length}</div>
     </div>
   )
 }))
@@ -99,11 +119,12 @@ describe('CategoryManagement', () => {
   })
 
   describe('rendering', () => {
-    it('should render the component with header and categories count', () => {
+    it('should render the component with header and category filters', () => {
       render(<CategoryManagement />)
       
       expect(screen.getByRole('heading', { name: 'Categories' })).toBeInTheDocument()
-      expect(screen.getByText('4 total categories')).toBeInTheDocument()
+      expect(screen.getByTestId('category-filters')).toBeInTheDocument()
+      expect(screen.getByText('Total: 4')).toBeInTheDocument()
       expect(screen.getByRole('button', { name: /new category/i })).toBeInTheDocument()
     })
 
@@ -121,7 +142,7 @@ describe('CategoryManagement', () => {
 
       render(<CategoryManagement />)
       
-      expect(screen.getByText('0 total categories')).toBeInTheDocument()
+      expect(screen.getByText('Total: 0')).toBeInTheDocument()
       expect(screen.getByText('No categories found.')).toBeInTheDocument()
     })
 
@@ -315,7 +336,7 @@ describe('CategoryManagement', () => {
     it('should update categories count when categories change', () => {
       const { rerender } = render(<CategoryManagement />)
       
-      expect(screen.getByText('4 total categories')).toBeInTheDocument()
+      expect(screen.getByText('Total: 4')).toBeInTheDocument()
       
       // Update mock to return different number of categories
       vi.mocked(useTransactionStore).mockReturnValue({
@@ -325,18 +346,20 @@ describe('CategoryManagement', () => {
       
       rerender(<CategoryManagement />)
       
-      expect(screen.getByText('2 total categories')).toBeInTheDocument()
+      expect(screen.getByText('Total: 2')).toBeInTheDocument()
     })
 
-    it('should handle singular/plural correctly', () => {
+    it('should display correct system vs custom counts', () => {
       vi.mocked(useTransactionStore).mockReturnValue({
         ...mockUseTransactionStore,
-        categories: [mockCategories[0]] // Only 1 category
+        categories: [mockCategories[0]] // Only 1 category (system)
       } as ReturnType<typeof useTransactionStore>)
 
       render(<CategoryManagement />)
       
-      expect(screen.getByText('1 total categories')).toBeInTheDocument()
+      expect(screen.getByText('Total: 1')).toBeInTheDocument()
+      expect(screen.getByText('System: 1')).toBeInTheDocument()
+      expect(screen.getByText('Custom: 0')).toBeInTheDocument()
     })
   })
 })
