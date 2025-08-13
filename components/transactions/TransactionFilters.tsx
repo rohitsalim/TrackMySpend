@@ -12,7 +12,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { DateRangeFilter } from '@/components/shared/DateRangeFilter'
 import { useTransactionStore } from '@/store/transaction-store'
 import { Search, Filter, X } from 'lucide-react'
 
@@ -22,7 +21,6 @@ export function TransactionFilters() {
     categories,
     setFilters,
     resetFilters,
-    setDateRange,
     fetchTransactions
   } = useTransactionStore()
   
@@ -34,10 +32,6 @@ export function TransactionFilters() {
     fetchTransactions(1)
   }
   
-  const handleDateRangeChange = (dateRange: { start: Date | null; end: Date | null }) => {
-    setDateRange(dateRange, 'transactions')
-    fetchTransactions(1)
-  }
   
   const handleCategoryChange = (categoryId: string) => {
     const newCategories = categoryId === 'all' 
@@ -55,8 +49,6 @@ export function TransactionFilters() {
   
   const hasActiveFilters = 
     filters.searchTerm ||
-    filters.dateRange.start ||
-    filters.dateRange.end ||
     filters.categories.length > 0 ||
     filters.showInternalTransfers
   
@@ -111,14 +103,6 @@ export function TransactionFilters() {
       {/* Advanced Filters */}
       {showAdvanced && (
         <div className="space-y-4 pt-4 border-t">
-          {/* Date Range Filter */}
-          <DateRangeFilter
-            value={filters.dateRange}
-            onChange={handleDateRangeChange}
-            context="transactions"
-            showLabel={false}
-          />
-          
           {/* Show Internal Transfers */}
           <div className="space-y-2">
             <Label>Options</Label>

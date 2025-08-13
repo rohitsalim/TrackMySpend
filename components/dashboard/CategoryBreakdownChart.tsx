@@ -147,9 +147,15 @@ export function CategoryBreakdownChart({ data }: CategoryBreakdownChartProps) {
           <Legend 
             verticalAlign="bottom" 
             height={36}
-            formatter={(value: string) => (
-              <span className="text-sm">{value}</span>
-            )}
+            formatter={(value: string, entry: any) => {
+              // Find the category name from the data array using the payload
+              const categoryData = entry?.payload
+              return (
+                <span className="text-sm">
+                  {categoryData?.categoryName || value}
+                </span>
+              )
+            }}
           />
         </PieChart>
       </ResponsiveContainer>

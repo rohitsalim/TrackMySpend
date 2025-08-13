@@ -9,10 +9,9 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover'
 import { Calendar } from '@/components/ui/calendar'
-import { Badge } from '@/components/ui/badge'
 import { useTransactionStore } from '@/store/transaction-store'
 import { useUploadStore } from '@/store/uploadStore'
-import { CalendarIcon, X, Filter, Sparkles } from 'lucide-react'
+import { CalendarIcon, X, Filter } from 'lucide-react'
 import { format } from 'date-fns'
 import { 
   generateSmartPresets, 
@@ -49,12 +48,19 @@ export function DateRangeFilter({
 
   // Generate smart presets when data changes
   useEffect(() => {
+    // Only proceed if we have data to work with
+    if (transactions.length === 0) {
+      return
+    }
+    
     const presets = generateSmartPresets(files, transactions)
     setSmartPresets(presets)
     
     // Auto-initialize with smart default if not already set and not initialized
     if (!isInitialized && (!value.start && !value.end)) {
       const smartDefault = getSmartDefaultDateRange(files, transactions)
+      
+      // Apply the smart default
       onChange(smartDefault)
       
       // Find which preset matches the smart default
@@ -68,9 +74,18 @@ export function DateRangeFilter({
       
       if (matchingPreset) {
         setActivePreset(matchingPreset.id)
+      } else if (presets.length > 0) {
+        // Fallback: select the first high-priority smart preset
+        const firstSmartPreset = presets.find(p => p.isDataBased) || presets[0]
+        if (firstSmartPreset) {
+          setActivePreset(firstSmartPreset.id)
+          const fallbackRange = firstSmartPreset.getValue()
+          onChange(fallbackRange)
+        }
       }
+      
+      setIsInitialized(true)
     }
-    setIsInitialized(true)
   }, [files, transactions, onChange, value.start, value.end, isInitialized])
 
   // Update active preset when external value changes
@@ -108,77 +123,53 @@ export function DateRangeFilter({
   
   const hasActiveFilters = value.start || value.end
   
-  // Group presets by priority/type
-  const dataBasedPresets = smartPresets.filter(p => p.isDataBased).slice(0, 4) // Top 4 data-based
-  const calendarPresets = smartPresets.filter(p => !p.isDataBased).slice(0, 3) // Top 3 calendar-based
+  // Get all presets sorted by priority, limit to top 5-6 for space
+  const allPresets = smartPresets.slice(0, 6)
+  
+  // Simplify preset labels for compactness
+  const getCompactLabel = (preset: DatePreset) => {
+    return preset.label
+      .replace(/All My Data \(([^)]+)\)/, 'All Data ($1)')
+      .replace(/Latest Statement \(([^)]+)\)/, 'Latest ($1)')
+      .replace(/Latest Period \(([^)]+)\)/, 'Latest ($1)')
+      .replace(/This Month \(([^)]+)\)/, 'This Month')
+      .replace(/Last (\d+) Days/, 'Last $1d')
+      .replace(/Last (\d+) Months/, 'Last $1m')
+  }
   
   return (
-    <div className={`space-y-4 ${className}`}>
-      <div className="flex flex-col lg:flex-row lg:items-center gap-4">
+    <div className={`${className}`}>
+      <div className="flex flex-wrap items-center gap-3">
         {/* Filter Label */}
         {showLabel && (
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-shrink-0">
             <Filter className="h-4 w-4 text-muted-foreground" />
             <Label className="text-sm font-medium">Time Period</Label>
           </div>
         )}
         
-        {/* Smart Preset Buttons */}
-        {dataBasedPresets.length > 0 && (
-          <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <Sparkles className="h-3 w-3 text-blue-500" />
-              <span className="text-xs text-muted-foreground font-medium">Smart Suggestions</span>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {dataBasedPresets.map((preset) => (
-                <Button
-                  key={preset.id}
-                  variant={activePreset === preset.id ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => handlePresetClick(preset)}
-                  className="text-xs relative"
-                >
-                  {preset.label}
-                  <Badge 
-                    variant="secondary" 
-                    className="ml-2 px-1 py-0 text-[10px] bg-blue-100 text-blue-700"
-                  >
-                    data
-                  </Badge>
-                </Button>
-              ))}
-            </div>
-          </div>
-        )}
-        
-        {/* Calendar-based Presets */}
-        {calendarPresets.length > 0 && (
-          <div className="space-y-2">
-            {dataBasedPresets.length > 0 && (
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-muted-foreground font-medium">Standard Periods</span>
-              </div>
-            )}
-            <div className="flex flex-wrap gap-2">
-              {calendarPresets.map((preset) => (
-                <Button
-                  key={preset.id}
-                  variant={activePreset === preset.id ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => handlePresetClick(preset)}
-                  className="text-xs"
-                >
-                  {preset.label}
-                </Button>
-              ))}
-            </div>
-          </div>
-        )}
+        {/* Preset Buttons */}
+        <div className="flex flex-wrap items-center gap-2">
+          {allPresets.map((preset) => (
+            <Button
+              key={preset.id}
+              variant={activePreset === preset.id ? "default" : "outline"}
+              size="sm"
+              onClick={() => handlePresetClick(preset)}
+              className={`text-xs h-7 px-3 relative ${
+                preset.isDataBased 
+                  ? 'border-l-2 border-l-blue-500' 
+                  : ''
+              }`}
+            >
+              {getCompactLabel(preset)}
+            </Button>
+          ))}
+        </div>
         
         {/* Custom Date Range */}
-        <div className="flex items-center gap-2">
-          <span className="text-xs text-muted-foreground">or custom:</span>
+        <div className="flex items-center gap-1 flex-shrink-0">
+          <span className="text-xs text-muted-foreground">or</span>
           
           {/* Start Date */}
           <Popover>
@@ -186,17 +177,13 @@ export function DateRangeFilter({
               <Button
                 variant="outline"
                 size="sm"
-                className="text-xs justify-start min-w-[100px]"
+                className="text-xs h-7 px-3 justify-start min-w-[80px]"
               >
-                <CalendarIcon className="mr-2 h-3 w-3" />
-                {value.start ? (
-                  format(value.start, 'MMM dd')
-                ) : (
-                  'From'
-                )}
+                <CalendarIcon className="mr-1 h-3 w-3" />
+                {value.start ? format(value.start, 'MMM d') : 'From'}
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-auto p-0">
+            <PopoverContent className="w-auto p-0" align="start">
               <Calendar
                 mode="single"
                 selected={value.start || undefined}
@@ -206,23 +193,24 @@ export function DateRangeFilter({
             </PopoverContent>
           </Popover>
           
+          {/* Separator */}
+          {value.start && value.end && (
+            <span className="text-xs text-muted-foreground px-1">→</span>
+          )}
+          
           {/* End Date */}
           <Popover>
             <PopoverTrigger asChild>
               <Button
                 variant="outline"
                 size="sm"
-                className="text-xs justify-start min-w-[100px]"
+                className="text-xs h-7 px-3 justify-start min-w-[80px]"
               >
-                <CalendarIcon className="mr-2 h-3 w-3" />
-                {value.end ? (
-                  format(value.end, 'MMM dd')
-                ) : (
-                  'To'
-                )}
+                <CalendarIcon className="mr-1 h-3 w-3" />
+                {value.end ? format(value.end, 'MMM d') : 'To'}
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-auto p-0">
+            <PopoverContent className="w-auto p-0" align="start">
               <Calendar
                 mode="single"
                 selected={value.end || undefined}
@@ -239,37 +227,13 @@ export function DateRangeFilter({
             variant="ghost"
             size="sm"
             onClick={handleReset}
-            className="text-xs gap-1"
+            className="text-xs h-7 px-2 gap-1 flex-shrink-0"
           >
             <X className="h-3 w-3" />
             Clear
           </Button>
         )}
       </div>
-      
-      {/* Active Filter Indicator */}
-      {hasActiveFilters && (
-        <div className="pt-3 border-t bg-muted/30 rounded-lg p-3">
-          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            <span>Showing data from</span>
-            <span className="font-medium text-foreground">
-              {value.start ? format(value.start, 'PPP') : 'beginning'}
-            </span>
-            <span>to</span>
-            <span className="font-medium text-foreground">
-              {value.end ? format(value.end, 'PPP') : 'now'}
-            </span>
-            {activePreset !== 'custom' && (
-              <>
-                <span>•</span>
-                <Badge variant="outline" className="text-[10px]">
-                  {smartPresets.find(p => p.id === activePreset)?.isDataBased ? 'Smart' : 'Standard'}
-                </Badge>
-              </>
-            )}
-          </div>
-        </div>
-      )}
     </div>
   )
 }

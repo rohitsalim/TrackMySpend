@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useTransactionStore } from '@/store/transaction-store'
 import { useUploadStore } from '@/store/uploadStore'
+import { DateRangeFilter } from '@/components/shared/DateRangeFilter'
 import { TransactionList } from '@/components/transactions/TransactionList'
 import { TransactionFilters } from '@/components/transactions/TransactionFilters'
 import { Button } from '@/components/ui/button'
@@ -20,7 +21,9 @@ export default function TransactionsPage() {
     fetchCategories,
     setPage,
     getPaginatedTransactions,
-    getFilteredTransactions
+    getFilteredTransactions,
+    filters,
+    setDateRange
   } = useTransactionStore()
   
   const { fetchUserFiles } = useUploadStore()
@@ -93,7 +96,16 @@ export default function TransactionsPage() {
         </div>
       </div>
 
-      {/* Filters */}
+      {/* Date Range Filters */}
+      <div className="bg-card rounded-lg border p-4">
+        <DateRangeFilter
+          value={filters.dateRange}
+          onChange={(dateRange) => setDateRange(dateRange, 'transactions')}
+          context="transactions"
+        />
+      </div>
+
+      {/* Other Filters */}
       <TransactionFilters />
 
       {/* Error state */}
