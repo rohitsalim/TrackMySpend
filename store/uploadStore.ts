@@ -35,6 +35,7 @@ interface UploadStore {
   fetchUserFiles: () => Promise<void>
   uploadFiles: (files: File[]) => Promise<void>
   deleteFile: (id: string) => Promise<void>
+  deleteMultipleFiles: (ids: string[]) => Promise<{ successful: number; failed: number; errors: string[] }>
   retryFile: (id: string) => Promise<void>
   setUploadState: (state: 'idle' | 'uploading' | 'processing' | 'completed' | 'error') => void
   setError: (error: string | null) => void
@@ -204,6 +205,85 @@ export const useUploadStore = create<UploadStore>((set, get) => ({
         hasUploadedFiles: newFiles.length > 0
       }
     })
+  },
+  
+  deleteMultipleFiles: async (ids: string[]) => {
+    if (ids.length === 0) {
+      return { successful: 0, failed: 0, errors: [] }
+    }
+
+    const supabase = createClient()
+    let successful = 0
+    let failed = 0
+    const errors: string[] = []
+    const deletedFileIds: string[] = []
+
+    try {
+      // Get file details for all files to delete
+      const { data: filesToDelete, error: fetchError } = await supabase
+        .from('files')
+        .select('id, filename, file_url')
+        .in('id', ids)
+
+      if (fetchError) {
+        console.error('Error fetching files for bulk delete:', fetchError)
+        return { successful: 0, failed: ids.length, errors: [fetchError.message] }
+      }
+
+      // Process each file deletion
+      for (const file of filesToDelete || []) {
+        try {
+          // Delete from storage if file_url exists
+          if (file.file_url) {
+            const urlPath = file.file_url.replace(/.*\/storage\/v1\/object\/public\/statements\//, '')
+            const { error: storageError } = await supabase.storage
+              .from('statements')
+              .remove([urlPath])
+            
+            if (storageError) {
+              console.warn(`Warning: Could not delete file from storage for ${file.filename}:`, storageError)
+              // Continue with database deletion even if storage deletion fails
+            }
+          }
+
+          // Delete from database
+          const { error: deleteError } = await supabase
+            .from('files')
+            .delete()
+            .eq('id', file.id)
+
+          if (deleteError) {
+            throw new Error(`Database deletion failed: ${deleteError.message}`)
+          }
+
+          // Track successful deletion
+          deletedFileIds.push(file.id)
+          successful++
+        } catch (error) {
+          failed++
+          const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred'
+          errors.push(`${file.filename}: ${errorMessage}`)
+          console.error(`Failed to delete file ${file.filename}:`, error)
+        }
+      }
+
+      // Update state to remove successfully deleted files
+      if (deletedFileIds.length > 0) {
+        set((state) => {
+          const newFiles = state.files.filter(f => !deletedFileIds.includes(f.id))
+          return {
+            files: newFiles,
+            hasUploadedFiles: newFiles.length > 0
+          }
+        })
+      }
+
+      return { successful, failed, errors }
+    } catch (error) {
+      console.error('Bulk delete operation failed:', error)
+      const errorMessage = error instanceof Error ? error.message : 'Bulk delete failed'
+      return { successful: 0, failed: ids.length, errors: [errorMessage] }
+    }
   },
   
   retryFile: async (id: string) => {

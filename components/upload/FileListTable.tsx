@@ -46,15 +46,19 @@ import {
 } from '@/components/ui/alert-dialog'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { useUploadStore, UploadedFile } from '@/store/uploadStore'
+import { useTransactionStore } from '@/store/transaction-store'
 import { formatDistanceToNow } from '@/lib/utils'
 
 export function FileListTable() {
-  const { files, deleteFile, retryFile, fetchUserFiles } = useUploadStore()
+  const { files, deleteFile, deleteMultipleFiles, retryFile, fetchUserFiles } = useUploadStore()
+  const { refreshAllTransactions } = useTransactionStore()
   const [sortField, setSortField] = useState<keyof UploadedFile>('uploaded_at')
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
   const [selectedFiles, setSelectedFiles] = useState<Set<string>>(new Set())
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [bulkDeleteDialogOpen, setBulkDeleteDialogOpen] = useState(false)
   const [fileToDelete, setFileToDelete] = useState<UploadedFile | null>(null)
+  const [isBulkDeleting, setIsBulkDeleting] = useState(false)
   
   React.useEffect(() => {
     fetchUserFiles()
@@ -90,10 +94,39 @@ export function FileListTable() {
 
   const handleDelete = async (file: UploadedFile) => {
     await deleteFile(file.id)
+    // Refresh transaction data to exclude deleted file's transactions
+    await refreshAllTransactions()
     setDeleteDialogOpen(false)
     setFileToDelete(null)
   }
   
+  const handleBulkDelete = async () => {
+    if (selectedFiles.size === 0) return
+    
+    setIsBulkDeleting(true)
+    try {
+      const result = await deleteMultipleFiles(Array.from(selectedFiles))
+      
+      if (result.successful > 0) {
+        // Refresh transaction data to exclude deleted files' transactions
+        await refreshAllTransactions()
+        // Clear selection
+        setSelectedFiles(new Set())
+      }
+      
+      // Show success/error feedback if needed
+      if (result.failed > 0) {
+        console.error('Some files failed to delete:', result.errors)
+        // Could show toast notification here
+      }
+    } catch (error) {
+      console.error('Bulk delete failed:', error)
+    } finally {
+      setIsBulkDeleting(false)
+      setBulkDeleteDialogOpen(false)
+    }
+  }
+
   const handleRetry = async (file: UploadedFile) => {
     await retryFile(file.id)
   }
@@ -101,6 +134,10 @@ export function FileListTable() {
   const openDeleteDialog = (file: UploadedFile) => {
     setFileToDelete(file)
     setDeleteDialogOpen(true)
+  }
+
+  const openBulkDeleteDialog = () => {
+    setBulkDeleteDialogOpen(true)
   }
 
   const getStatusBadge = (status: UploadedFile['status']) => {
@@ -202,9 +239,10 @@ export function FileListTable() {
                 <Button
                   variant="destructive"
                   size="sm"
-                  disabled
+                  onClick={openBulkDeleteDialog}
+                  disabled={isBulkDeleting}
                 >
-                  Delete Selected
+                  {isBulkDeleting ? 'Deleting...' : 'Delete Selected'}
                 </Button>
               </div>
             </div>
@@ -383,6 +421,28 @@ export function FileListTable() {
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               Delete File
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Bulk Delete Confirmation Dialog */}
+      <AlertDialog open={bulkDeleteDialogOpen} onOpenChange={setBulkDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Multiple Files</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete {selectedFiles.size} selected file{selectedFiles.size > 1 ? 's' : ''}? This action cannot be undone and will remove all associated transaction data from these files.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isBulkDeleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleBulkDelete}
+              disabled={isBulkDeleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isBulkDeleting ? 'Deleting...' : `Delete ${selectedFiles.size} File${selectedFiles.size > 1 ? 's' : ''}`}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
