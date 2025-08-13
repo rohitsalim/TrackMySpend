@@ -3,6 +3,8 @@
 import { useEffect, useState } from 'react'
 import { useTransactionStore } from '@/store/transaction-store'
 import { useUploadStore } from '@/store/uploadStore'
+import { EmptyState } from '@/components/upload/EmptyState'
+import { UploadModal } from '@/components/upload/UploadModal'
 import { TransactionStats } from '@/components/transactions/TransactionStats'
 import { IncomeExpenseChart } from '@/components/dashboard/IncomeExpenseChart'
 import { CategoryBreakdownChart } from '@/components/dashboard/CategoryBreakdownChart'
@@ -33,10 +35,11 @@ export default function DashboardPage() {
     setDateRange
   } = useTransactionStore()
   
-  const { fetchUserFiles } = useUploadStore()
+  const { fetchUserFiles, hasUploadedFiles } = useUploadStore()
   
   const [isInitialLoad, setIsInitialLoad] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
+  const [uploadModalOpen, setUploadModalOpen] = useState(false)
 
   useEffect(() => {
     const loadData = async () => {
@@ -129,6 +132,19 @@ export default function DashboardPage() {
     )
   }
 
+  // Show empty state if no statements have been uploaded
+  if (!hasUploadedFiles && !isInitialLoad) {
+    return (
+      <div className="container mx-auto py-8">
+        <EmptyState onUploadClick={() => setUploadModalOpen(true)} />
+        <UploadModal 
+          open={uploadModalOpen} 
+          onOpenChange={setUploadModalOpen}
+        />
+      </div>
+    )
+  }
+
   return (
     <div className="container mx-auto py-8 space-y-8">
       {/* Header */}
@@ -210,6 +226,12 @@ export default function DashboardPage() {
         {/* AI Insights - Full Width */}
         <InsightsCard transactions={filteredTransactions} categories={categories} />
       </div>
+      
+      {/* Upload Modal */}
+      <UploadModal 
+        open={uploadModalOpen} 
+        onOpenChange={setUploadModalOpen}
+      />
     </div>
   )
 }

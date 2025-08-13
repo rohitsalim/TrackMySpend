@@ -298,53 +298,19 @@ export function getSmartDefaultDateRange(
   transactions: Transaction[]
 ): { start: Date | null; end: Date | null } {
   const dataRange = getDataDateRange(transactions)
-  const latestStatement = getLatestStatementPeriod(files, transactions)
   
-  // Priority 1: Latest statement period if it's recent and high confidence
-  if (latestStatement && latestStatement.confidence > 0.8) {
-    const isRecent = differenceInDays(new Date(), latestStatement.endDate) <= 45
-    if (isRecent) {
-      return {
-        start: startOfDay(latestStatement.startDate),
-        end: endOfDay(latestStatement.endDate)
-      }
-    }
-  }
-  
-  // Priority 2: Last 30 days if we have recent data
+  // Priority 1: All data if any data exists (user preference)
   if (dataRange) {
-    const now = new Date()
-    const thirtyDaysAgo = subDays(now, 30)
-    const hasRecentData = dataRange.latest.getTime() > thirtyDaysAgo.getTime()
-    
-    if (hasRecentData) {
-      return {
-        start: startOfDay(thirtyDaysAgo),
-        end: endOfDay(now)
-      }
-    }
-  }
-  
-  // Priority 3: All data if span is reasonable (< 6 months)
-  if (dataRange && dataRange.spanInDays <= 180) {
     return {
       start: startOfDay(dataRange.earliest),
       end: endOfDay(dataRange.latest)
     }
   }
   
-  // Priority 4: Last 3 months if we have data
-  if (dataRange) {
-    return {
-      start: startOfDay(subMonths(new Date(), 3)),
-      end: endOfDay(new Date())
-    }
-  }
-  
-  // Fallback: Last 30 days (calendar-based)
+  // Fallback: No filter if no data exists
   return {
-    start: startOfDay(subDays(new Date(), 30)),
-    end: endOfDay(new Date())
+    start: null,
+    end: null
   }
 }
 

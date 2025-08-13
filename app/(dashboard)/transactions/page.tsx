@@ -3,6 +3,8 @@
 import { useEffect, useState } from 'react'
 import { useTransactionStore } from '@/store/transaction-store'
 import { useUploadStore } from '@/store/uploadStore'
+import { EmptyState } from '@/components/upload/EmptyState'
+import { UploadModal } from '@/components/upload/UploadModal'
 import { DateRangeFilter } from '@/components/shared/DateRangeFilter'
 import { TransactionList } from '@/components/transactions/TransactionList'
 import { TransactionFilters } from '@/components/transactions/TransactionFilters'
@@ -26,9 +28,10 @@ export default function TransactionsPage() {
     setDateRange
   } = useTransactionStore()
   
-  const { fetchUserFiles } = useUploadStore()
+  const { fetchUserFiles, hasUploadedFiles } = useUploadStore()
 
   const [isInitialLoad, setIsInitialLoad] = useState(true)
+  const [uploadModalOpen, setUploadModalOpen] = useState(false)
 
   useEffect(() => {
     const loadData = async () => {
@@ -61,6 +64,19 @@ export default function TransactionsPage() {
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
           <p className="text-muted-foreground">Loading transactions...</p>
         </div>
+      </div>
+    )
+  }
+
+  // Show empty state if no statements have been uploaded
+  if (!hasUploadedFiles && !isInitialLoad) {
+    return (
+      <div className="container mx-auto py-6">
+        <EmptyState onUploadClick={() => setUploadModalOpen(true)} />
+        <UploadModal 
+          open={uploadModalOpen} 
+          onOpenChange={setUploadModalOpen}
+        />
       </div>
     )
   }
@@ -124,6 +140,12 @@ export default function TransactionsPage() {
         currentPage={currentPage}
         pageSize={pageSize}
         onPageChange={handlePageChange}
+      />
+      
+      {/* Upload Modal */}
+      <UploadModal 
+        open={uploadModalOpen} 
+        onOpenChange={setUploadModalOpen}
       />
     </div>
   )

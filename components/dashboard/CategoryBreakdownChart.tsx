@@ -147,12 +147,12 @@ export function CategoryBreakdownChart({ data }: CategoryBreakdownChartProps) {
           <Legend 
             verticalAlign="bottom" 
             height={36}
-            formatter={(value: string, entry: any) => {
+            formatter={(value: string, entry: { payload?: Record<string, unknown> }) => {
               // Find the category name from the data array using the payload
               const categoryData = entry?.payload
               return (
                 <span className="text-sm">
-                  {categoryData?.categoryName || value}
+                  {(categoryData?.categoryName as string) || value}
                 </span>
               )
             }}
