@@ -21,9 +21,7 @@ import {
 } from '@/components/ui/alert-dialog'
 import { 
   LogOut, 
-  Settings, 
   Download, 
-  Upload,
   MoreVertical,
   FileSpreadsheet,
 } from 'lucide-react'
@@ -81,17 +79,6 @@ export function AccountActions() {
   return (
     <>
       <div className="flex items-center gap-2">
-        {/* Upload New File Button */}
-        <Button 
-          variant="default" 
-          onClick={() => router.push('/')}
-          className="gap-2"
-        >
-          <Upload className="h-4 w-4" />
-          <span className="hidden sm:inline">Upload Statement</span>
-          <span className="sm:hidden">Upload</span>
-        </Button>
-
         {/* Actions Dropdown */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -116,16 +103,6 @@ export function AccountActions() {
             >
               <Download className="h-4 w-4 mr-2" />
               View Transactions
-            </DropdownMenuItem>
-            
-            <DropdownMenuSeparator />
-            
-            <DropdownMenuItem 
-              onClick={() => console.log('Settings not implemented yet')}
-              className="cursor-pointer"
-            >
-              <Settings className="h-4 w-4 mr-2" />
-              Account Settings
             </DropdownMenuItem>
             
             <DropdownMenuSeparator />
