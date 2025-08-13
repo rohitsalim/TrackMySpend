@@ -16,6 +16,7 @@ import { format } from 'date-fns'
 import { 
   generateSmartPresets, 
   getSmartDefaultDateRange,
+  isAutoSelectedRange,
   type DatePreset 
 } from '@/lib/utils/date-range-analysis'
 
@@ -100,6 +101,44 @@ export function DateRangeFilter({
     
     setActivePreset(matchingPreset?.id || 'custom')
   }, [value, smartPresets])
+
+  // Handle data range changes - update filter when data expands and current selection is auto-selected
+  useEffect(() => {
+    // Only proceed if we have data and the component is initialized
+    if (transactions.length === 0 || !isInitialized) {
+      return
+    }
+
+    // Check if current selection was auto-selected (matches "All Data")
+    if (isAutoSelectedRange(value, files, transactions)) {
+      // Get the current data range
+      const currentDataRange = getSmartDefaultDateRange(files, transactions)
+      
+      // Check if the current data range is different from the selected range
+      const rangeHasChanged = (
+        value.start?.getTime() !== currentDataRange.start?.getTime() ||
+        value.end?.getTime() !== currentDataRange.end?.getTime()
+      )
+
+      if (rangeHasChanged) {
+        // Data range has changed and current selection is auto-selected, update to new "All Data"
+        onChange(currentDataRange)
+        
+        // Update the active preset to match the new range
+        const matchingPreset = smartPresets.find(preset => {
+          const presetValue = preset.getValue()
+          return (
+            presetValue.start?.getTime() === currentDataRange.start?.getTime() &&
+            presetValue.end?.getTime() === currentDataRange.end?.getTime()
+          )
+        })
+        
+        if (matchingPreset) {
+          setActivePreset(matchingPreset.id)
+        }
+      }
+    }
+  }, [transactions, files, value, onChange, smartPresets, isInitialized])
   
   const handlePresetClick = (preset: DatePreset) => {
     const dateRange = preset.getValue()

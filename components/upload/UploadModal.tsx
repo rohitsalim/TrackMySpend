@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { useUploadStore } from '@/store/uploadStore'
+import { useTransactionStore } from '@/store/transaction-store'
 import { cn } from '@/lib/utils'
 
 interface UploadModalProps {
@@ -28,6 +29,7 @@ export function UploadModal({ open, onOpenChange }: UploadModalProps) {
   const router = useRouter()
   const [files, setFiles] = useState<FileWithPreview[]>([])
   const { uploadFiles, uploadState, uploadProgress, fileProcessingStatus, processingResult, error, resetUploadState } = useUploadStore()
+  const { refreshAllTransactions } = useTransactionStore()
   
   const onDrop = useCallback((acceptedFiles: File[]) => {
     // Limit to 20 files
@@ -52,15 +54,25 @@ export function UploadModal({ open, onOpenChange }: UploadModalProps) {
     if (files.length === 0) return
     
     await uploadFiles(files)
-    
-    if (uploadState === 'completed') {
-      setTimeout(() => {
-        onOpenChange(false)
-        setFiles([])
-        resetUploadState()
-      }, 3000) // Extended to 3 seconds to show processing results
-    }
   }
+
+  // Handle upload completion and refresh transactions
+  React.useEffect(() => {
+    const handleUploadCompletion = async () => {
+      if (uploadState === 'completed') {
+        // Refresh transaction data to include newly uploaded transactions
+        await refreshAllTransactions()
+        
+        setTimeout(() => {
+          onOpenChange(false)
+          setFiles([])
+          resetUploadState()
+        }, 3000) // Extended to 3 seconds to show processing results
+      }
+    }
+
+    handleUploadCompletion()
+  }, [uploadState, refreshAllTransactions, onOpenChange, resetUploadState])
   
   const handleClose = () => {
     if (uploadState !== 'uploading' && uploadState !== 'processing') {
