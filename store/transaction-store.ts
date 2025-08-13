@@ -14,23 +14,29 @@ import {
 type Transaction = Database['public']['Tables']['transactions']['Row']
 type Category = Database['public']['Tables']['categories']['Row']
 
-interface TransactionFilters {
-  dateRange: {
-    start: Date | null
-    end: Date | null
-  }
+interface DateRange {
+  start: Date | null
+  end: Date | null
+}
+
+interface UnifiedFilters {
+  dateRange: DateRange
   categories: string[]
   vendors: string[]
   searchTerm: string
   showInternalTransfers: boolean
+  context: 'dashboard' | 'transactions'
+  autoSelected: boolean
 }
+
+type FilterContext = 'dashboard' | 'transactions'
 
 interface TransactionStore {
   // State
   transactions: Transaction[]
   allTransactionsLoaded: boolean
   categories: Category[]
-  filters: TransactionFilters
+  filters: UnifiedFilters
   isLoading: boolean
   error: string | null
   totalCount: number
@@ -56,9 +62,10 @@ interface TransactionStore {
   createCategory: (name: string, color?: string, icon?: string, parentId?: string | null) => Promise<Category>
   updateCategory: (id: string, updates: Partial<Category>) => Promise<void>
   deleteCategory: (id: string) => Promise<void>
-  setFilters: (filters: Partial<TransactionFilters>) => void
+  setFilters: (filters: Partial<UnifiedFilters>, context?: FilterContext) => void
   setPage: (page: number) => void
-  resetFilters: () => void
+  resetFilters: (context?: FilterContext) => void
+  setDateRange: (dateRange: DateRange, context?: FilterContext) => void
   
   // Insights Cache Actions
   getCachedInsights: () => Insight[] | null
@@ -68,12 +75,12 @@ interface TransactionStore {
   loadInsightsCacheFromStorage: () => void
   
   // Selectors
-  getFilteredTransactions: () => Transaction[]
+  getFilteredTransactions: (context?: FilterContext) => Transaction[]
   getPaginatedTransactions: () => Transaction[]
   getMonthlyTotals: () => { month: string; income: number; expenses: number }[]
 }
 
-const defaultFilters: TransactionFilters = {
+const defaultFilters: UnifiedFilters = {
   dateRange: {
     start: null,
     end: null
@@ -81,7 +88,9 @@ const defaultFilters: TransactionFilters = {
   categories: [],
   vendors: [],
   searchTerm: '',
-  showInternalTransfers: false
+  showInternalTransfers: false,
+  context: 'transactions',
+  autoSelected: false
 }
 
 export const useTransactionStore = create<TransactionStore>((set, get) => ({
@@ -461,11 +470,18 @@ export const useTransactionStore = create<TransactionStore>((set, get) => ({
   },
   
   // Set filters
-  setFilters: (newFilters) => {
-    set(state => ({
-      filters: { ...state.filters, ...newFilters },
-      currentPage: 1 // Reset to first page when filters change
-    }))
+  setFilters: (newFilters, context) => {
+    set(state => {
+      const updatedFilters = { 
+        ...state.filters, 
+        ...newFilters,
+        context: context || state.filters.context
+      }
+      return {
+        filters: updatedFilters,
+        currentPage: 1 // Reset to first page when filters change
+      }
+    })
   },
   
   // Set page
@@ -474,19 +490,34 @@ export const useTransactionStore = create<TransactionStore>((set, get) => ({
   },
   
   // Reset filters
-  resetFilters: () => {
-    set({ filters: defaultFilters, currentPage: 1 })
+  resetFilters: (context) => {
+    set(state => ({
+      filters: {
+        ...defaultFilters,
+        context: context || state.filters.context
+      },
+      currentPage: 1
+    }))
   },
   
-  // Get filtered transactions (client-side)
-  getFilteredTransactions: () => {
+  // Set date range for specific context
+  setDateRange: (dateRange, context = 'transactions') => {
+    set(state => ({
+      filters: {
+        ...state.filters,
+        dateRange,
+        context
+      }
+    }))
+  },
+  
+  // Get filtered transactions with context awareness
+  getFilteredTransactions: (context) => {
     const { transactions, filters } = get()
+    const effectiveContext = context || filters.context
     
     return transactions.filter(tx => {
-      if (!filters.showInternalTransfers && tx.is_internal_transfer) {
-        return false
-      }
-      
+      // Date range filtering (applies to all contexts)
       if (filters.dateRange.start) {
         const txDate = new Date(tx.transaction_date)
         if (txDate < filters.dateRange.start) return false
@@ -495,6 +526,20 @@ export const useTransactionStore = create<TransactionStore>((set, get) => ({
       if (filters.dateRange.end) {
         const txDate = new Date(tx.transaction_date)
         if (txDate > filters.dateRange.end) return false
+      }
+      
+      // Dashboard context: simpler filtering
+      if (effectiveContext === 'dashboard') {
+        // Always filter out internal transfers for dashboard
+        if (tx.is_internal_transfer) {
+          return false
+        }
+        return true
+      }
+      
+      // Transactions context: full filtering
+      if (!filters.showInternalTransfers && tx.is_internal_transfer) {
+        return false
       }
       
       if (filters.categories.length > 0 && !filters.categories.includes(tx.category_id || '')) {
@@ -520,10 +565,11 @@ export const useTransactionStore = create<TransactionStore>((set, get) => ({
     })
   },
   
+  
   // Get paginated transactions for the transactions page
   getPaginatedTransactions: () => {
     const { currentPage, pageSize } = get()
-    const filteredTransactions = get().getFilteredTransactions()
+    const filteredTransactions = get().getFilteredTransactions('transactions')
     
     const offset = (currentPage - 1) * pageSize
     return filteredTransactions.slice(offset, offset + pageSize)

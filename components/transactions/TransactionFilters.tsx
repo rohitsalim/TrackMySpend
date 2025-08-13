@@ -12,15 +12,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover'
-import { Calendar } from '@/components/ui/calendar'
+import { DateRangeFilter } from '@/components/shared/DateRangeFilter'
 import { useTransactionStore } from '@/store/transaction-store'
-import { Search, Filter, X, CalendarIcon } from 'lucide-react'
-import { format } from 'date-fns'
+import { Search, Filter, X } from 'lucide-react'
 
 export function TransactionFilters() {
   const {
@@ -28,6 +22,7 @@ export function TransactionFilters() {
     categories,
     setFilters,
     resetFilters,
+    setDateRange,
     fetchTransactions
   } = useTransactionStore()
   
@@ -35,17 +30,12 @@ export function TransactionFilters() {
   const [searchInput, setSearchInput] = useState(filters.searchTerm)
   
   const handleSearch = () => {
-    setFilters({ searchTerm: searchInput })
+    setFilters({ searchTerm: searchInput }, 'transactions')
     fetchTransactions(1)
   }
   
-  const handleDateRangeChange = (field: 'start' | 'end', date: Date | undefined) => {
-    setFilters({
-      dateRange: {
-        ...filters.dateRange,
-        [field]: date || null
-      }
-    })
+  const handleDateRangeChange = (dateRange: { start: Date | null; end: Date | null }) => {
+    setDateRange(dateRange, 'transactions')
     fetchTransactions(1)
   }
   
@@ -53,13 +43,13 @@ export function TransactionFilters() {
     const newCategories = categoryId === 'all' 
       ? []
       : [categoryId]
-    setFilters({ categories: newCategories })
+    setFilters({ categories: newCategories }, 'transactions')
     fetchTransactions(1)
   }
   
   const handleReset = () => {
     setSearchInput('')
-    resetFilters()
+    resetFilters('transactions')
     fetchTransactions(1)
   }
   
@@ -121,78 +111,28 @@ export function TransactionFilters() {
       {/* Advanced Filters */}
       {showAdvanced && (
         <div className="space-y-4 pt-4 border-t">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {/* Start Date */}
-            <div className="space-y-2">
-              <Label>From Date</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className="w-full justify-start text-left font-normal"
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {filters.dateRange.start ? (
-                      format(filters.dateRange.start, 'PP')
-                    ) : (
-                      <span>Pick a date</span>
-                    )}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0">
-                  <Calendar
-                    mode="single"
-                    selected={filters.dateRange.start || undefined}
-                    onSelect={(date) => handleDateRangeChange('start', date)}
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
-            </div>
-            
-            {/* End Date */}
-            <div className="space-y-2">
-              <Label>To Date</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className="w-full justify-start text-left font-normal"
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {filters.dateRange.end ? (
-                      format(filters.dateRange.end, 'PP')
-                    ) : (
-                      <span>Pick a date</span>
-                    )}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0">
-                  <Calendar
-                    mode="single"
-                    selected={filters.dateRange.end || undefined}
-                    onSelect={(date) => handleDateRangeChange('end', date)}
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
-            </div>
-            
-            {/* Show Internal Transfers */}
-            <div className="space-y-2">
-              <Label>Options</Label>
-              <div className="flex items-center space-x-2">
-                <Switch
-                  checked={filters.showInternalTransfers}
-                  onCheckedChange={(checked) => {
-                    setFilters({ showInternalTransfers: checked })
-                    fetchTransactions(1)
-                  }}
-                />
-                <Label className="font-normal cursor-pointer">
-                  Show internal transfers
-                </Label>
-              </div>
+          {/* Date Range Filter */}
+          <DateRangeFilter
+            value={filters.dateRange}
+            onChange={handleDateRangeChange}
+            context="transactions"
+            showLabel={false}
+          />
+          
+          {/* Show Internal Transfers */}
+          <div className="space-y-2">
+            <Label>Options</Label>
+            <div className="flex items-center space-x-2">
+              <Switch
+                checked={filters.showInternalTransfers}
+                onCheckedChange={(checked) => {
+                  setFilters({ showInternalTransfers: checked }, 'transactions')
+                  fetchTransactions(1)
+                }}
+              />
+              <Label className="font-normal cursor-pointer">
+                Show internal transfers
+              </Label>
             </div>
           </div>
           

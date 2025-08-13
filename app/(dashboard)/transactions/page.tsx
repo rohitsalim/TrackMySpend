@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useTransactionStore } from '@/store/transaction-store'
+import { useUploadStore } from '@/store/uploadStore'
 import { TransactionList } from '@/components/transactions/TransactionList'
 import { TransactionFilters } from '@/components/transactions/TransactionFilters'
 import { Button } from '@/components/ui/button'
@@ -21,6 +22,8 @@ export default function TransactionsPage() {
     getPaginatedTransactions,
     getFilteredTransactions
   } = useTransactionStore()
+  
+  const { fetchUserFiles } = useUploadStore()
 
   const [isInitialLoad, setIsInitialLoad] = useState(true)
 
@@ -28,10 +31,11 @@ export default function TransactionsPage() {
     const loadData = async () => {
       await fetchCategories()
       await ensureTransactionsLoaded() // Load all transactions
+      await fetchUserFiles() // Load uploaded files for smart presets
       setIsInitialLoad(false)
     }
     loadData()
-  }, [fetchCategories, ensureTransactionsLoaded])
+  }, [fetchCategories, ensureTransactionsLoaded, fetchUserFiles])
 
   const handleRefresh = async () => {
     await refreshAllTransactions()
@@ -104,7 +108,7 @@ export default function TransactionsPage() {
         transactions={getPaginatedTransactions()}
         categories={categories}
         isLoading={isLoading}
-        totalCount={getFilteredTransactions().length}
+        totalCount={getFilteredTransactions('transactions').length}
         currentPage={currentPage}
         pageSize={pageSize}
         onPageChange={handlePageChange}

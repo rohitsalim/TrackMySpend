@@ -220,3 +220,26 @@ export function getFinancialSummary(transactions: Transaction[]) {
     transactionCount: transactions.length
   }
 }
+
+// Filtered versions of the data functions for dashboard
+export function getFilteredMonthlyData(transactions: Transaction[]): MonthlyData[] {
+  return getMonthlyData(transactions)
+}
+
+export function getFilteredCategoryBreakdown(
+  transactions: Transaction[], 
+  categories: Category[]
+): CategoryBreakdown[] {
+  return getCategoryBreakdown(transactions, categories)
+}
+
+export function getFilteredMonthlyComparison(
+  transactions: Transaction[],
+  categories: Category[]
+): MonthlyComparison[] {
+  return getMonthlyComparison(transactions, categories)
+}
+
+export function getFilteredFinancialSummary(transactions: Transaction[]) {
+  return getFinancialSummary(transactions)
+}

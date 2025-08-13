@@ -5,12 +5,20 @@ import { useTransactionStore } from '@/store/transaction-store'
 import { formatCurrency } from '@/lib/utils/formatters'
 import { TrendingUp, TrendingDown, Wallet, CreditCard, Smartphone, Building2, Activity } from 'lucide-react'
 import { analyzeTransactionPatterns, getTopPaymentMethods } from '@/lib/utils/transaction-patterns'
+import type { Database } from '@/types/database'
 
-export function TransactionStats() {
+type Transaction = Database['public']['Tables']['transactions']['Row']
+
+interface TransactionStatsProps {
+  transactions?: Transaction[] // Optional prop to pass filtered transactions
+  context?: 'dashboard' | 'transactions'
+}
+
+export function TransactionStats({ transactions: propTransactions, context = 'dashboard' }: TransactionStatsProps = {}) {
   const { getFilteredTransactions } = useTransactionStore()
   
-  // Use filtered transactions (which will be all transactions if no filters applied)
-  const filteredTransactions = getFilteredTransactions()
+  // Use prop transactions if provided, otherwise get from store with context
+  const filteredTransactions = propTransactions || getFilteredTransactions(context)
   
   // Analyze transaction patterns
   const analysis = analyzeTransactionPatterns(filteredTransactions)

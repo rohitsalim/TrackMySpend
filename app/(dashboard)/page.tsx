@@ -2,32 +2,38 @@
 
 import { useEffect, useState } from 'react'
 import { useTransactionStore } from '@/store/transaction-store'
+import { useUploadStore } from '@/store/uploadStore'
 import { TransactionStats } from '@/components/transactions/TransactionStats'
 import { IncomeExpenseChart } from '@/components/dashboard/IncomeExpenseChart'
 import { CategoryBreakdownChart } from '@/components/dashboard/CategoryBreakdownChart'
 import { MonthlyComparisonChart } from '@/components/dashboard/MonthlyComparisonChart'
 import { InsightsCard } from '@/components/dashboard/InsightsCard'
+import { DateRangeFilter } from '@/components/shared/DateRangeFilter'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { RefreshCw, Download, FileText, FileSpreadsheet } from 'lucide-react'
 import { 
-  getMonthlyData, 
-  getCategoryBreakdown, 
-  getMonthlyComparison,
+  getFilteredMonthlyData, 
+  getFilteredCategoryBreakdown, 
+  getFilteredMonthlyComparison,
   getLatestDataMonth,
-  getFinancialSummary
+  getFilteredFinancialSummary
 } from '@/lib/utils/dashboard-data'
 import { exportToCSV, exportToPDF } from '@/lib/utils/export'
 
 export default function DashboardPage() {
   const { 
-    transactions,
     ensureTransactionsLoaded,
     refreshAllTransactions,
     fetchCategories, 
     categories,
-    isLoading 
+    isLoading,
+    getFilteredTransactions,
+    filters,
+    setDateRange
   } = useTransactionStore()
+  
+  const { fetchUserFiles } = useUploadStore()
   
   const [isInitialLoad, setIsInitialLoad] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
@@ -36,10 +42,11 @@ export default function DashboardPage() {
     const loadData = async () => {
       await fetchCategories()
       await ensureTransactionsLoaded() // Load all transactions for dashboard
+      await fetchUserFiles() // Load uploaded files for smart presets
       setIsInitialLoad(false)
     }
     loadData()
-  }, [fetchCategories, ensureTransactionsLoaded])
+  }, [fetchCategories, ensureTransactionsLoaded, fetchUserFiles])
 
   const handleRefresh = async () => {
     setRefreshing(true)
@@ -47,14 +54,17 @@ export default function DashboardPage() {
     setRefreshing(false)
   }
 
+  // Get filtered transactions for dashboard context
+  const filteredTransactions = getFilteredTransactions('dashboard')
+
   const handleExportCSV = () => {
-    const summary = getFinancialSummary(transactions)
-    const dateRange = transactions.length > 0
-      ? `${new Date(transactions[transactions.length - 1].transaction_date).toLocaleDateString()} - ${new Date(transactions[0].transaction_date).toLocaleDateString()}`
+    const summary = getFilteredFinancialSummary(filteredTransactions)
+    const dateRange = filteredTransactions.length > 0
+      ? `${new Date(filteredTransactions[filteredTransactions.length - 1].transaction_date).toLocaleDateString()} - ${new Date(filteredTransactions[0].transaction_date).toLocaleDateString()}`
       : 'No Data'
     
     exportToCSV({
-      transactions: transactions,
+      transactions: filteredTransactions,
       summary: {
         ...summary,
         dateRange
@@ -63,27 +73,27 @@ export default function DashboardPage() {
   }
 
   const handleExportPDF = () => {
-    const summary = getFinancialSummary(transactions)
-    const dateRange = transactions.length > 0
-      ? `${new Date(transactions[transactions.length - 1].transaction_date).toLocaleDateString()} - ${new Date(transactions[0].transaction_date).toLocaleDateString()}`
+    const summary = getFilteredFinancialSummary(filteredTransactions)
+    const dateRange = filteredTransactions.length > 0
+      ? `${new Date(filteredTransactions[filteredTransactions.length - 1].transaction_date).toLocaleDateString()} - ${new Date(filteredTransactions[0].transaction_date).toLocaleDateString()}`
       : 'No Data'
     
     exportToPDF({
-      transactions: transactions,
+      transactions: filteredTransactions,
       summary: {
         ...summary,
         dateRange
       }
     })
   }
-
+  
   // Prepare chart data
-  const monthlyData = getMonthlyData(transactions)
-  const categoryBreakdown = getCategoryBreakdown(transactions, categories)
-  const monthlyComparison = getMonthlyComparison(transactions, categories)
+  const monthlyData = getFilteredMonthlyData(filteredTransactions)
+  const categoryBreakdown = getFilteredCategoryBreakdown(filteredTransactions, categories)
+  const monthlyComparison = getFilteredMonthlyComparison(filteredTransactions, categories)
   
   // Get month names for comparison chart
-  const latestMonth = getLatestDataMonth(transactions)
+  const latestMonth = getLatestDataMonth(filteredTransactions)
   const previousMonthDate = new Date()
   previousMonthDate.setMonth(previousMonthDate.getMonth() - 1)
   const previousMonth = previousMonthDate.toLocaleDateString('en-US', { 
@@ -170,8 +180,17 @@ export default function DashboardPage() {
         </div>
       </div>
 
+      {/* Date Range Filters */}
+      <div className="bg-card rounded-lg border p-4">
+        <DateRangeFilter
+          value={filters.dateRange}
+          onChange={(dateRange) => setDateRange(dateRange, 'dashboard')}
+          context="dashboard"
+        />
+      </div>
+
       {/* Stats Cards */}
-      <TransactionStats />
+      <TransactionStats transactions={filteredTransactions} context="dashboard" />
 
       {/* Charts Grid */}
       <div className="grid grid-cols-1 gap-6">
@@ -189,7 +208,7 @@ export default function DashboardPage() {
         </div>
         
         {/* AI Insights - Full Width */}
-        <InsightsCard transactions={transactions} categories={categories} />
+        <InsightsCard transactions={filteredTransactions} categories={categories} />
       </div>
     </div>
   )
