@@ -65,7 +65,7 @@ export async function parsePDFStatement(pdfText: string): Promise<ProcessingResu
     }
 
     const { object } = await generateObject({
-      model: google('gemini-2.5-flash-lite'),
+      model: google('gemini-2.5-flash'),
       providerOptions: {
         google: {
           thinkingConfig: {
